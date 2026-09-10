@@ -74,16 +74,8 @@ def upcoming(exams: list) -> list:
 
 TIMELINE_STYLE = """
 <style>
-.et-wrap { max-width: 500px; margin: 30px auto 12px; padding: 0 10px; text-align: left;
+.et-wrap { max-width: 500px; margin: 30px auto 12px; padding: 6px 10px 0; text-align: left;
            font-family: -apple-system, system-ui, sans-serif; color: var(--fg, #1a1a1a); }
-.et-head { display: flex; align-items: center; gap: 10px; margin: 0 0 2px; }
-.et-head .et-title { font-size: 12px; font-weight: 700; letter-spacing: .08em;
-                     text-transform: uppercase; opacity: .55; }
-.et-head .et-edit { margin-left: auto; font-size: 12px; font-weight: 600; color: #3b82f6;
-                    background: transparent; border: none; cursor: pointer; padding: 3px 8px;
-                    border-radius: 7px; }
-.et-head .et-edit:hover { background: rgba(59,130,246,.12); }
-
 .et-focus { display: flex; align-items: center; justify-content: center; gap: 6px; }
 .et-nav { border: none; background: transparent; color: var(--fg, #888); opacity: .3;
           font-size: 30px; line-height: 1; cursor: pointer; padding: 4px 12px; border-radius: 10px;
@@ -113,8 +105,14 @@ TIMELINE_STYLE = """
 .et-tick.active.soon { background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.18); }
 .et-today { position: absolute; left: 0; top: 22px; font-size: 10px; opacity: .4;
             text-transform: uppercase; letter-spacing: .06em; }
-.et-counter { text-align: center; font-size: 11px; opacity: .4; margin-top: 4px;
-              letter-spacing: .05em; }
+.et-counter { display: flex; align-items: center; justify-content: center; gap: 7px;
+              margin-top: 5px; }
+.et-count-text { font-size: 11px; letter-spacing: .05em; opacity: .4; }
+.et-gear { border: none; background: transparent; color: var(--fg, #888); opacity: .35;
+           cursor: pointer; padding: 2px; line-height: 0; border-radius: 6px;
+           display: inline-flex; align-items: center;
+           transition: opacity .15s, background .15s; }
+.et-gear:hover { opacity: .9; background: rgba(127,127,127,.14); }
 
 .et-empty { opacity: .55; font-size: 13px; padding: 14px 2px; }
 .et-empty a { color: #3b82f6; cursor: pointer; text-decoration: none; }
@@ -135,7 +133,7 @@ WIDGET_SCRIPT = """
   var unitEl = root.querySelector('.et-unit');
   var nameEl = root.querySelector('.et-name');
   var dateEl = root.querySelector('.et-date');
-  var counterEl = root.querySelector('.et-counter');
+  var counterEl = root.querySelector('.et-count-text');
   var track = root.querySelector('.et-track');
   var ticks = [];
   Array.prototype.forEach.call(track.querySelectorAll('.et-tick'), function (t) { t.remove(); });
@@ -202,10 +200,24 @@ def _widget_data(exams: list) -> list:
     return data
 
 
-def _head() -> str:
+GEAR_SVG = (
+    "<svg viewBox='0 0 24 24' width='13' height='13' fill='currentColor' aria-hidden='true'>"
+    "<path d='M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14."
+    "23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94"
+    "l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13."
+    "57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-."
+    "05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29."
+    "59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-."
+    "41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-."
+    "47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 "
+    "3.6-1.62 3.6-3.6 3.6z'/></svg>"
+)
+
+
+def _gear() -> str:
     return (
-        '<div class="et-head"><span class="et-title">Exam Timeline</span>'
-        f"<button class=\"et-edit\" onclick=\"pycmd('{OPEN_CMD}')\">Edit</button></div>"
+        f"<button class=\"et-gear\" onclick=\"pycmd('{OPEN_CMD}')\" "
+        f'aria-label="Edit exams" title="Edit exams">{GEAR_SVG}</button>'
     )
 
 
@@ -213,12 +225,11 @@ def build_timeline_widget(exams: list) -> str:
     data = _widget_data(exams)
     if not data:
         return (
-            f'<div class="et-wrap">{_head()}'
-            '<div class="et-empty">No upcoming exams — '
+            '<div class="et-wrap"><div class="et-empty">No upcoming exams — '
             f"<a onclick=\"pycmd('{OPEN_CMD}')\">add one</a>.</div></div>{TIMELINE_STYLE}"
         )
     body = (
-        f'<div class="et-wrap" id="et-widget">{_head()}'
+        '<div class="et-wrap" id="et-widget">'
         '<div class="et-focus">'
         '<button class="et-nav et-prev" aria-label="Previous">&lsaquo;</button>'
         '<div class="et-hero"><div class="et-count"></div><div class="et-unit"></div>'
@@ -226,7 +237,7 @@ def build_timeline_widget(exams: list) -> str:
         '<button class="et-nav et-next" aria-label="Next">&rsaquo;</button>'
         "</div>"
         '<div class="et-track"><div class="et-rail"></div><span class="et-today">Today</span></div>'
-        '<div class="et-counter"></div>'
+        f'<div class="et-counter"><span class="et-count-text"></span>{_gear()}</div>'
         "</div>"
     )
     payload = json.dumps(data).replace("</", "<\\/")
