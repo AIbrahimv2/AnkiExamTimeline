@@ -1,9 +1,11 @@
 # Exam Timeline
 
-Open **Tools → Exam Timeline** to view your countdown and add or remove exams.
+The timeline appears at the top of the **deck screen**. To add or remove exams,
+open the editor window from **Tools → Exam Timeline** (or the **Edit** button on
+the widget).
 
-You normally don't need to edit this config by hand — use the window's form
-instead. Each exam is stored as:
+You normally don't need to edit this config by hand — use the editor instead.
+Each exam is stored as:
 
 ```json
 {

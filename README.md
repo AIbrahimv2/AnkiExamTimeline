@@ -7,16 +7,19 @@ urgency (red within a week, amber within a month).
 
 ## Features
 
-- **Horizontal timeline** of upcoming exams, nearest first.
-- **Large day countdown** per exam.
-- **Easy entry** — an inline form (name + date) adds an exam; a per-card button
-  removes one.
-- Exams **persist** between sessions and past exams are hidden automatically.
+- **Timeline widget** on the deck (home) screen showing upcoming exams, nearest
+  first, each with a **large day countdown**.
+- **Separate editor window** for entering and removing exams — the widget itself
+  stays read-only.
+- Exams **persist** between sessions and past exams are hidden from the widget
+  automatically.
 
 ## Usage
 
-Open **Tools → Exam Timeline**. Type an exam name, pick a date, and click
-**Add exam**. Remove an exam with the **×** on its card.
+The timeline appears at the top of the deck screen. To manage exams, open
+**Tools → Exam Timeline** (or click **Edit** on the widget): type a name, pick a
+date, and click **Add exam**. Remove an exam with the **×** on its row. Changes
+appear on the deck screen immediately.
 
 ## Installation
 

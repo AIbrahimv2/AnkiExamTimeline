@@ -8,8 +8,10 @@ All notable changes to this project are documented here. The format is based on
 ### Added
 
 - Initial release.
-- **Tools → Exam Timeline** window showing upcoming exams left-to-right on a
-  horizontal timeline, each with a large "days left" countdown.
-- Inline form to add exams (name + date) and a per-exam remove button.
+- Read-only **timeline widget** at the top of the deck (home) screen showing
+  upcoming exams left-to-right, each with a large "days left" countdown.
+- Separate **editor window** (Tools → Exam Timeline, or the widget's Edit
+  button) to add and remove exams; changes update the widget immediately.
 - Colour-coded urgency: red within a week, amber within a month.
-- Exams persist in the add-on config; past exams are hidden automatically.
+- Exams persist in the add-on config; past exams are hidden from the widget
+  automatically.
