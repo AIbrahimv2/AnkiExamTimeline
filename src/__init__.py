@@ -109,9 +109,10 @@ TIMELINE_STYLE = """
 .et-counter { display: flex; align-items: center; justify-content: center; gap: 7px;
               margin-top: 5px; }
 .et-count-text { font-size: 11px; letter-spacing: .05em; opacity: .4; }
-.et-gear { border: none; background: transparent; color: var(--fg, #888); opacity: .35;
-           cursor: pointer; padding: 2px; line-height: 0; border-radius: 6px;
-           display: inline-flex; align-items: center;
+.et-gear { flex: none; box-sizing: border-box; width: 22px; height: 22px; padding: 0;
+           border: none; background: transparent; color: var(--fg, #888); opacity: .35;
+           cursor: pointer; line-height: 0; border-radius: 6px;
+           display: inline-flex; align-items: center; justify-content: center;
            transition: opacity .15s, background .15s; }
 .et-gear:hover { opacity: .9; background: rgba(127,127,127,.14); }
 
