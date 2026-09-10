@@ -74,11 +74,14 @@ def upcoming(exams: list) -> list:
 
 TIMELINE_STYLE = """
 <style>
-.et-wrap { max-width: 500px; margin: 30px auto 12px; padding: 6px 10px 0; text-align: left;
+.et-wrap { box-sizing: border-box; width: 500px; max-width: 100%; margin: 30px auto 12px;
+           padding: 6px 10px 0; text-align: left;
            font-family: -apple-system, system-ui, sans-serif; color: var(--fg, #1a1a1a); }
 .et-focus { display: flex; align-items: center; justify-content: center; gap: 6px; }
-.et-nav { border: none; background: transparent; color: var(--fg, #888); opacity: .3;
-          font-size: 30px; line-height: 1; cursor: pointer; padding: 4px 12px; border-radius: 10px;
+.et-nav { flex: none; box-sizing: border-box; width: 46px; height: 46px; padding: 0;
+          display: inline-flex; align-items: center; justify-content: center;
+          border: none; background: transparent; color: var(--fg, #888); opacity: .3;
+          font-size: 30px; line-height: 1; cursor: pointer; border-radius: 10px;
           user-select: none; transition: opacity .15s, background .15s; }
 .et-nav:hover { opacity: 1; background: rgba(127,127,127,.12); }
 .et-hero { flex: 1; text-align: center; padding: 4px 0 2px; min-width: 0; }
@@ -103,8 +106,6 @@ TIMELINE_STYLE = """
                   box-shadow: 0 0 0 4px rgba(59,130,246,.18); }
 .et-tick.active.near { background: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.18); }
 .et-tick.active.soon { background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.18); }
-.et-today { position: absolute; left: 0; top: 22px; font-size: 10px; opacity: .4;
-            text-transform: uppercase; letter-spacing: .06em; }
 .et-counter { display: flex; align-items: center; justify-content: center; gap: 7px;
               margin-top: 5px; }
 .et-count-text { font-size: 11px; letter-spacing: .05em; opacity: .4; }
@@ -236,7 +237,7 @@ def build_timeline_widget(exams: list) -> str:
         '<div class="et-name"></div><div class="et-date"></div></div>'
         '<button class="et-nav et-next" aria-label="Next">&rsaquo;</button>'
         "</div>"
-        '<div class="et-track"><div class="et-rail"></div><span class="et-today">Today</span></div>'
+        '<div class="et-track"><div class="et-rail"></div></div>'
         f'<div class="et-counter"><span class="et-count-text"></span>{_gear()}</div>'
         "</div>"
     )
