@@ -16,7 +16,6 @@ import time
 from datetime import date
 
 from aqt import gui_hooks, mw
-from aqt.deckbrowser import DeckBrowser
 from aqt.qt import (
     QAction,
     QDate,
@@ -75,8 +74,8 @@ def upcoming(exams: list) -> list:
 
 TIMELINE_STYLE = """
 <style>
-.et-wrap { padding: 18px 26px 14px; font-family: -apple-system, system-ui, sans-serif;
-           color: var(--fg, #1a1a1a); text-align: left; }
+.et-wrap { max-width: 500px; margin: 30px auto 12px; padding: 0 10px; text-align: left;
+           font-family: -apple-system, system-ui, sans-serif; color: var(--fg, #1a1a1a); }
 .et-head { display: flex; align-items: center; gap: 10px; margin: 0 0 2px; }
 .et-head .et-title { font-size: 12px; font-weight: 700; letter-spacing: .08em;
                      text-transform: uppercase; opacity: .55; }
@@ -234,10 +233,10 @@ def build_timeline_widget(exams: list) -> str:
     return body + TIMELINE_STYLE + WIDGET_SCRIPT.replace("__DATA__", payload)
 
 
-def on_webview_content(web_content, context) -> None:
-    """Prepend the read-only timeline to the top of the deck browser page."""
-    if isinstance(context, DeckBrowser):
-        web_content.body = build_timeline_widget(get_config()["exams"]) + web_content.body
+def on_deck_render(deck_browser, content) -> None:
+    """Insert the read-only timeline into the deck screen's centred stats area,
+    directly under the "studied today" line and above the heatmap add-on."""
+    content.stats += build_timeline_widget(get_config()["exams"])
 
 
 def on_js_message(handled, message: str, context):
@@ -417,6 +416,19 @@ def _install() -> None:
     mw.form.menuTools.addAction(action)
 
 
+def _register_deck_hook() -> None:
+    """Register the deck-screen injection so it runs *before* other add-ons that
+    append to the stats area (e.g. Review Heatmap). Running first means our
+    widget is appended right after "studied today" and the heatmap lands below
+    it, regardless of add-on load order."""
+    hook = gui_hooks.deck_browser_will_render_content
+    hooks = getattr(hook, "_hooks", None)
+    if isinstance(hooks, list):
+        hooks.insert(0, on_deck_render)
+    else:
+        hook.append(on_deck_render)
+
+
 gui_hooks.main_window_did_init.append(_install)
-gui_hooks.webview_will_set_content.append(on_webview_content)
+_register_deck_hook()
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
