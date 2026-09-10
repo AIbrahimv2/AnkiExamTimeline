@@ -61,39 +61,110 @@ def upcoming(exams: list) -> list:
 
 TIMELINE_STYLE = """
 <style>
-.et-wrap { padding: 4px 6px 10px; font-family: -apple-system, system-ui, sans-serif;
+.et-wrap { padding: 18px 26px 14px; font-family: -apple-system, system-ui, sans-serif;
            color: var(--fg, #1a1a1a); text-align: left; }
-.et-head { display: flex; align-items: center; gap: 10px; margin: 0 0 12px; }
-.et-head .et-title { font-size: 15px; font-weight: 700; letter-spacing: .01em; }
-.et-head .et-sub { font-size: 12px; opacity: .5; }
+.et-head { display: flex; align-items: center; gap: 10px; margin: 0 0 2px; }
+.et-head .et-title { font-size: 12px; font-weight: 700; letter-spacing: .08em;
+                     text-transform: uppercase; opacity: .55; }
 .et-head .et-edit { margin-left: auto; font-size: 12px; font-weight: 600; color: #3b82f6;
-                    background: transparent; border: none; cursor: pointer; padding: 3px 6px;
+                    background: transparent; border: none; cursor: pointer; padding: 3px 8px;
                     border-radius: 7px; }
 .et-head .et-edit:hover { background: rgba(59,130,246,.12); }
-.et-timeline { position: relative; display: flex; gap: 26px; overflow-x: auto;
-               padding: 4px 2px 30px; align-items: flex-start; }
-.et-line { position: absolute; left: 4px; right: 4px; bottom: 42px; height: 2px;
-           background: var(--border, #d6d6d6); z-index: 0; }
-.et-item { position: relative; z-index: 1; display: flex; flex-direction: column;
-           align-items: center; min-width: 128px; }
-.et-card { background: var(--canvas-elevated, #fff); border: 1px solid var(--border, #e2e2e2);
-           border-radius: 15px; padding: 15px 18px 13px; text-align: center; min-width: 116px;
-           box-shadow: 0 5px 16px rgba(0,0,0,0.10); }
-.et-count { font-size: 48px; font-weight: 800; line-height: 1; letter-spacing: -.02em; }
-.et-unit { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; opacity: .55;
-           margin-top: 4px; }
-.et-name { font-size: 14px; font-weight: 600; margin-top: 11px; word-break: break-word; }
-.et-date { font-size: 11px; opacity: .5; margin-top: 3px; }
-.et-dot { width: 14px; height: 14px; border-radius: 50%; background: #3b82f6;
-          border: 3px solid var(--canvas, #fff); margin-top: 18px; }
-.et-item.near .et-count, .et-item.near .et-name { color: #f59e0b; }
-.et-item.near .et-dot { background: #f59e0b; }
-.et-item.soon .et-count, .et-item.soon .et-name { color: #ef4444; }
-.et-item.soon .et-dot { background: #ef4444; }
-.et-empty { opacity: .55; font-size: 13px; padding: 6px 2px 14px; }
+
+.et-focus { display: flex; align-items: center; justify-content: center; gap: 6px; }
+.et-nav { border: none; background: transparent; color: var(--fg, #888); opacity: .3;
+          font-size: 30px; line-height: 1; cursor: pointer; padding: 4px 12px; border-radius: 10px;
+          user-select: none; transition: opacity .15s, background .15s; }
+.et-nav:hover { opacity: 1; background: rgba(127,127,127,.12); }
+.et-hero { flex: 1; text-align: center; padding: 4px 0 2px; min-width: 0; }
+.et-count { font-size: 76px; font-weight: 800; line-height: .95; letter-spacing: -.03em;
+            color: #3b82f6; transition: color .2s; }
+.et-unit { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; opacity: .55;
+           margin-top: 2px; }
+.et-name { font-size: 19px; font-weight: 700; margin-top: 12px; word-break: break-word; }
+.et-date { font-size: 13px; opacity: .55; margin-top: 3px; }
+.et-hero.near .et-count { color: #f59e0b; }
+.et-hero.soon .et-count { color: #ef4444; }
+
+.et-track { position: relative; height: 30px; margin: 14px 14px 0; }
+.et-rail { position: absolute; left: 0; right: 0; top: 13px; height: 2px;
+           background: var(--border, #e0e0e0); }
+.et-tick { position: absolute; top: 13px; transform: translate(-50%, -50%); width: 10px;
+           height: 10px; border-radius: 50%; background: var(--border, #c4c4c4);
+           border: 2px solid var(--canvas, #fff); cursor: pointer;
+           transition: width .15s, height .15s, background .15s, box-shadow .15s; }
+.et-tick:hover { background: #9aa0a6; }
+.et-tick.active { width: 16px; height: 16px; background: #3b82f6;
+                  box-shadow: 0 0 0 4px rgba(59,130,246,.18); }
+.et-tick.active.near { background: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.18); }
+.et-tick.active.soon { background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.18); }
+.et-today { position: absolute; left: 0; top: 22px; font-size: 10px; opacity: .4;
+            text-transform: uppercase; letter-spacing: .06em; }
+.et-counter { text-align: center; font-size: 11px; opacity: .4; margin-top: 4px;
+              letter-spacing: .05em; }
+
+.et-empty { opacity: .55; font-size: 13px; padding: 14px 2px; }
 .et-empty a { color: #3b82f6; cursor: pointer; text-decoration: none; }
 .et-empty a:hover { text-decoration: underline; }
 </style>
+"""
+
+WIDGET_SCRIPT = """
+<script>
+(function () {
+  var EXAMS = __DATA__;
+  var root = document.getElementById('et-widget');
+  if (!root || !EXAMS.length) { return; }
+  var focus = 0;
+  var maxDays = Math.max(1, EXAMS[EXAMS.length - 1].days);
+  var hero = root.querySelector('.et-hero');
+  var countEl = root.querySelector('.et-count');
+  var unitEl = root.querySelector('.et-unit');
+  var nameEl = root.querySelector('.et-name');
+  var dateEl = root.querySelector('.et-date');
+  var counterEl = root.querySelector('.et-counter');
+  var track = root.querySelector('.et-track');
+  var ticks = [];
+  Array.prototype.forEach.call(track.querySelectorAll('.et-tick'), function (t) { t.remove(); });
+
+  function urg(d) { return d <= 7 ? 'soon' : (d <= 30 ? 'near' : ''); }
+  function posPct(d) { return EXAMS.length === 1 ? 50 : (6 + (d / maxDays) * 88); }
+
+  EXAMS.forEach(function (e, i) {
+    var t = document.createElement('div');
+    t.className = 'et-tick ' + urg(e.days);
+    t.style.left = posPct(e.days) + '%';
+    t.title = e.name + ' \\u2014 ' + e.pretty;
+    t.addEventListener('click', function () { focus = i; render(); });
+    track.appendChild(t);
+    ticks.push(t);
+  });
+
+  function render() {
+    var e = EXAMS[focus];
+    hero.className = 'et-hero ' + urg(e.days);
+    countEl.textContent = e.days === 0 ? '0' : String(e.days);
+    unitEl.textContent = e.days === 0 ? 'today' : (e.days === 1 ? 'day left' : 'days left');
+    nameEl.textContent = e.name;
+    dateEl.textContent = e.pretty;
+    counterEl.textContent = (focus + 1) + ' / ' + EXAMS.length;
+    ticks.forEach(function (t, i) {
+      t.className = 'et-tick ' + urg(EXAMS[i].days) + (i === focus ? ' active' : '');
+    });
+  }
+
+  root.querySelector('.et-prev').addEventListener('click', function () {
+    focus = (focus - 1 + EXAMS.length) % EXAMS.length; render();
+  });
+  root.querySelector('.et-next').addEventListener('click', function () {
+    focus = (focus + 1) % EXAMS.length; render();
+  });
+  if (EXAMS.length < 2) {
+    root.querySelectorAll('.et-nav').forEach(function (n) { n.style.visibility = 'hidden'; });
+  }
+  render();
+})();
+</script>
 """
 
 
@@ -101,46 +172,52 @@ def _urgency(d: int) -> str:
     return "soon" if d <= 7 else ("near" if d <= 30 else "")
 
 
-def _timeline_card(exam: dict, d: int) -> str:
-    name = _html.escape(exam.get("name", ""))
-    iso = _html.escape(exam.get("date", ""))
-    big = "0" if d == 0 else str(d)
-    unit = "today" if d == 0 else ("day left" if d == 1 else "days left")
-    return f"""
-      <div class="et-item {_urgency(d)}">
-        <div class="et-card">
-          <div class="et-count">{big}</div>
-          <div class="et-unit">{unit}</div>
-          <div class="et-name">{name}</div>
-          <div class="et-date">{iso}</div>
-        </div>
-        <div class="et-dot"></div>
-      </div>
-    """
+def _pretty_date(iso: str) -> str:
+    try:
+        dt = date.fromisoformat(iso)
+        return dt.strftime("%a, %b ") + str(dt.day) + dt.strftime(", %Y")
+    except Exception:
+        return iso
+
+
+def _widget_data(exams: list) -> list:
+    """Upcoming exams (nearest first) as plain dicts for client-side rendering."""
+    data = []
+    for e, d in upcoming(exams):
+        iso = e.get("date", "")
+        data.append({"name": e.get("name", ""), "date": iso, "pretty": _pretty_date(iso), "days": d})
+    return data
+
+
+def _head() -> str:
+    return (
+        '<div class="et-head"><span class="et-title">Exam Timeline</span>'
+        f"<button class=\"et-edit\" onclick=\"pycmd('{OPEN_CMD}')\">Edit</button></div>"
+    )
 
 
 def build_timeline_widget(exams: list) -> str:
-    rows = upcoming(exams)
-    n = len(rows)
-    sub = "" if n == 0 else f'<span class="et-sub">{n} upcoming</span>'
-    out = ['<div class="et-wrap">']
-    out.append(
-        '<div class="et-head"><span class="et-title">Exam Timeline</span>'
-        f"{sub}"
-        f"<button class=\"et-edit\" onclick=\"pycmd('{OPEN_CMD}')\">Edit</button></div>"
-    )
-    if not rows:
-        out.append(
+    data = _widget_data(exams)
+    if not data:
+        return (
+            f'<div class="et-wrap">{_head()}'
             '<div class="et-empty">No upcoming exams — '
-            f"<a onclick=\"pycmd('{OPEN_CMD}')\">add one</a>.</div>"
+            f"<a onclick=\"pycmd('{OPEN_CMD}')\">add one</a>.</div></div>{TIMELINE_STYLE}"
         )
-    else:
-        out.append('<div class="et-timeline"><div class="et-line"></div>')
-        out.extend(_timeline_card(e, d) for e, d in rows)
-        out.append("</div>")
-    out.append("</div>")
-    out.append(TIMELINE_STYLE)
-    return "".join(out)
+    body = (
+        f'<div class="et-wrap" id="et-widget">{_head()}'
+        '<div class="et-focus">'
+        '<button class="et-nav et-prev" aria-label="Previous">&lsaquo;</button>'
+        '<div class="et-hero"><div class="et-count"></div><div class="et-unit"></div>'
+        '<div class="et-name"></div><div class="et-date"></div></div>'
+        '<button class="et-nav et-next" aria-label="Next">&rsaquo;</button>'
+        "</div>"
+        '<div class="et-track"><div class="et-rail"></div><span class="et-today">Today</span></div>'
+        '<div class="et-counter"></div>'
+        "</div>"
+    )
+    payload = json.dumps(data).replace("</", "<\\/")
+    return body + TIMELINE_STYLE + WIDGET_SCRIPT.replace("__DATA__", payload)
 
 
 def on_webview_content(web_content, context) -> None:
