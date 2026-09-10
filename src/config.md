@@ -1,6 +1,6 @@
 # Exam Timeline
 
-The timeline appears at the top of the **deck screen**. To add or remove exams,
+The timeline appears on the **deck** and **deck overview** screens. To add or remove exams,
 open the editor window from **Tools → Exam Timeline** (or the **Edit** button on
 the widget).
 

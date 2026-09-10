@@ -252,6 +252,12 @@ def on_deck_render(deck_browser, content) -> None:
     content.stats += build_timeline_widget(get_config()["exams"])
 
 
+def on_overview_render(overview, content) -> None:
+    """Insert the timeline into the deck overview, after the counts table and
+    above the heatmap add-on."""
+    content.table += build_timeline_widget(get_config()["exams"])
+
+
 def on_js_message(handled, message: str, context):
     if message == OPEN_CMD:
         open_editor()
@@ -264,6 +270,8 @@ def on_js_message(handled, message: str, context):
 def refresh_widget() -> None:
     if mw.state == "deckBrowser":
         mw.deckBrowser.refresh()
+    elif mw.state == "overview":
+        mw.overview.refresh()
 
 
 def _row_label(exam: dict) -> tuple[str, str, str]:
@@ -429,19 +437,19 @@ def _install() -> None:
     mw.form.menuTools.addAction(action)
 
 
-def _register_deck_hook() -> None:
-    """Register the deck-screen injection so it runs *before* other add-ons that
-    append to the stats area (e.g. Review Heatmap). Running first means our
-    widget is appended right after "studied today" and the heatmap lands below
-    it, regardless of add-on load order."""
-    hook = gui_hooks.deck_browser_will_render_content
+def _register_first(hook, cb) -> None:
+    """Register a render hook so it runs *before* other add-ons that append to
+    the same area (e.g. Review Heatmap). Running first means our widget is
+    appended right after the stats/counts and the heatmap lands below it,
+    regardless of add-on load order."""
     hooks = getattr(hook, "_hooks", None)
     if isinstance(hooks, list):
-        hooks.insert(0, on_deck_render)
+        hooks.insert(0, cb)
     else:
-        hook.append(on_deck_render)
+        hook.append(cb)
 
 
 gui_hooks.main_window_did_init.append(_install)
-_register_deck_hook()
+_register_first(gui_hooks.deck_browser_will_render_content, on_deck_render)
+_register_first(gui_hooks.overview_will_render_content, on_overview_render)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)

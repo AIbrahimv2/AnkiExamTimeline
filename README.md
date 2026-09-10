@@ -7,7 +7,7 @@ urgency (red within a week, amber within a month).
 
 ## Features
 
-- **Timeline widget** on the deck (home) screen showing upcoming exams, nearest
+- **Timeline widget** on the deck (home) and deck-overview screens showing upcoming exams, nearest
   first, each with a **large day countdown**.
 - **Separate editor window** for entering and removing exams — the widget itself
   stays read-only.
@@ -16,7 +16,7 @@ urgency (red within a week, amber within a month).
 
 ## Usage
 
-The timeline appears at the top of the deck screen. To manage exams, open
+The timeline appears on the deck and deck-overview screens. To manage exams, open
 **Tools → Exam Timeline** (or click **Edit** on the widget): type a name, pick a
 date, and click **Add exam**. Remove an exam with the **×** on its row. Changes
 appear on the deck screen immediately.
