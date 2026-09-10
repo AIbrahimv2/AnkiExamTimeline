@@ -17,9 +17,23 @@ from datetime import date
 
 from aqt import gui_hooks, mw
 from aqt.deckbrowser import DeckBrowser
-from aqt.qt import QAction, QDialog, QVBoxLayout, qconnect
+from aqt.qt import (
+    QAction,
+    QDate,
+    QDateEdit,
+    QDialog,
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QScrollArea,
+    Qt,
+    QVBoxLayout,
+    QWidget,
+    qconnect,
+)
 from aqt.utils import restoreGeom, saveGeom
-from aqt.webview import AnkiWebView
 
 GEOM_KEY = "exam_timeline"
 OPEN_CMD = "examtl:open"
@@ -235,151 +249,149 @@ def on_js_message(handled, message: str, context):
 
 # --- editor window -----------------------------------------------------------
 
-EDITOR_STYLE = """
-<style>
-.ed-wrap { padding: 22px 26px 30px; font-family: -apple-system, system-ui, sans-serif;
-           color: var(--fg, #1a1a1a); }
-.ed-wrap h1 { font-size: 20px; font-weight: 700; margin: 0 0 4px; }
-.ed-wrap .ed-sub { font-size: 13px; opacity: .5; margin-bottom: 20px; }
-.ed-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 24px; }
-.ed-in { padding: 9px 11px; border-radius: 9px; border: 1px solid var(--border, #ccc);
-         background: var(--canvas-elevated, #fff); color: var(--fg, #000); font-size: 14px; }
-#ed-name { flex: 1; min-width: 200px; }
-.ed-add { padding: 9px 18px; border: none; border-radius: 9px; background: #3b82f6;
-          color: #fff; font-weight: 600; cursor: pointer; font-size: 14px; }
-.ed-add:hover { background: #2563eb; }
-.ed-list { display: flex; flex-direction: column; gap: 8px; }
-.ed-row { display: flex; align-items: center; gap: 14px; padding: 12px 14px;
-          border: 1px solid var(--border, #e2e2e2); border-radius: 11px;
-          background: var(--canvas-elevated, #fff); }
-.ed-days { font-size: 22px; font-weight: 800; min-width: 62px; text-align: center;
-           line-height: 1; }
-.ed-days small { display: block; font-size: 9px; font-weight: 600; text-transform: uppercase;
-                 letter-spacing: .06em; opacity: .5; margin-top: 3px; }
-.ed-info { flex: 1; }
-.ed-info .ed-nm { font-size: 15px; font-weight: 600; }
-.ed-info .ed-dt { font-size: 12px; opacity: .55; margin-top: 2px; }
-.ed-row.near .ed-days { color: #f59e0b; }
-.ed-row.soon .ed-days { color: #ef4444; }
-.ed-row.past { opacity: .5; }
-.ed-row.past .ed-days { color: var(--fg, #888); }
-.ed-del { border: none; background: transparent; color: var(--fg, #888); opacity: .4;
-          font-size: 20px; line-height: 1; cursor: pointer; padding: 2px 6px; border-radius: 7px; }
-.ed-del:hover { opacity: 1; color: #ef4444; background: rgba(239,68,68,.12); }
-.ed-empty { opacity: .55; padding: 30px 0; text-align: center; font-size: 14px; }
-</style>
-"""
-
-EDITOR_SCRIPT = """
-<script>
-function edAdd() {
-  var n = document.getElementById('ed-name').value.trim();
-  var d = document.getElementById('ed-date').value;
-  if (!n || !d) { return; }
-  pycmd('add:' + JSON.stringify({name: n, date: d}));
-}
-function edDel(id) { pycmd('del:' + id); }
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && (e.target.id === 'ed-name' || e.target.id === 'ed-date')) edAdd();
-});
-</script>
-"""
-
-
-def _editor_row(exam: dict) -> str:
-    name = _html.escape(exam.get("name", ""))
-    iso = _html.escape(exam.get("date", ""))
-    eid = _html.escape(str(exam.get("id", "")))
-    d = days_left(exam.get("date", ""))
-    if d is None:
-        cls, big, unit = "past", "—", ""
-    elif d < 0:
-        cls, big, unit = "past", str(-d), "days ago"
-    else:
-        cls = _urgency(d)
-        big = "0" if d == 0 else str(d)
-        unit = "today" if d == 0 else ("day left" if d == 1 else "days left")
-    return f"""
-      <div class="ed-row {cls}">
-        <div class="ed-days">{big}<small>{unit}</small></div>
-        <div class="ed-info"><div class="ed-nm">{name}</div><div class="ed-dt">{iso}</div></div>
-        <button class="ed-del" title="Remove" onclick="edDel('{eid}')">&times;</button>
-      </div>
-    """
-
-
-def build_editor(exams: list) -> str:
-    def sort_key(e):
-        d = days_left(e.get("date", ""))
-        return (d is None, d if d is not None else 0)
-
-    ordered = sorted(exams, key=sort_key)
-    out = ['<div class="ed-wrap">']
-    out.append("<h1>Exam Timeline</h1>")
-    out.append('<div class="ed-sub">Add your upcoming exams — they appear on the deck screen.</div>')
-    out.append(
-        '<div class="ed-form">'
-        '<input id="ed-name" class="ed-in" placeholder="Exam name (e.g. USMLE Step 1)" />'
-        '<input id="ed-date" class="ed-in" type="date" />'
-        '<button class="ed-add" onclick="edAdd()">Add exam</button>'
-        "</div>"
-    )
-    if not ordered:
-        out.append('<div class="ed-empty">No exams yet. Add one above to get started.</div>')
-    else:
-        out.append('<div class="ed-list">')
-        out.extend(_editor_row(e) for e in ordered)
-        out.append("</div>")
-    out.append("</div>")
-    out.append(EDITOR_STYLE)
-    out.append(EDITOR_SCRIPT)
-    return "".join(out)
-
-
 def refresh_widget() -> None:
     if mw.state == "deckBrowser":
         mw.deckBrowser.refresh()
+
+
+def _row_label(exam: dict) -> tuple[str, str, str]:
+    """(big number, unit caption, urgency colour or '') for an exam row."""
+    d = days_left(exam.get("date", ""))
+    if d is None:
+        return "—", "", "#8a8a8a"
+    if d < 0:
+        return str(-d), "days ago", "#8a8a8a"
+    if d == 0:
+        return "0", "today", "#ef4444"
+    unit = "day left" if d == 1 else "days left"
+    return str(d), unit, {"soon": "#ef4444", "near": "#f59e0b"}.get(_urgency(d), "")
+
+
+class ExamRow(QFrame):
+    def __init__(self, exam: dict, on_delete):
+        super().__init__()
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        lay = QHBoxLayout(self)
+        lay.setContentsMargins(12, 8, 10, 8)
+        lay.setSpacing(14)
+
+        big, unit, color = _row_label(exam)
+        col = f"color:{color};" if color else ""
+        days = QLabel(
+            f"<div align='center'><span style='font-size:21px;font-weight:800;{col}'>{big}</span>"
+            f"<br><span style='font-size:9px;color:gray'>{unit}</span></div>"
+        )
+        days.setFixedWidth(70)
+        lay.addWidget(days)
+
+        name = _html.escape(exam.get("name", ""))
+        iso = _html.escape(exam.get("date", ""))
+        info = QLabel(
+            f"<b style='font-size:14px'>{name}</b>"
+            f"<br><span style='color:gray;font-size:11px'>{iso}</span>"
+        )
+        info.setTextFormat(Qt.TextFormat.RichText)
+        lay.addWidget(info, 1)
+
+        remove = QPushButton("Remove")
+        remove.setAutoDefault(False)
+        qconnect(remove.clicked, lambda: on_delete(str(exam.get("id"))))
+        lay.addWidget(remove)
 
 
 class EditorDialog(QDialog):
     def __init__(self, parent):
         super().__init__(parent)
         self.setWindowTitle("Exam Timeline")
-        self.resize(560, 560)
+        self.resize(520, 560)
         restoreGeom(self, GEOM_KEY)
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        self.web = AnkiWebView(self, title="exam_timeline_editor")
-        self.web.set_bridge_command(self._on_cmd, self)
-        layout.addWidget(self.web)
+
+        outer = QVBoxLayout(self)
+        outer.setContentsMargins(20, 18, 20, 18)
+        outer.setSpacing(14)
+
+        title = QLabel("Exam Timeline")
+        tf = title.font()
+        tf.setPointSize(tf.pointSize() + 5)
+        tf.setBold(True)
+        title.setFont(tf)
+        outer.addWidget(title)
+
+        sub = QLabel("Add your upcoming exams — they appear on the deck screen.")
+        sub.setStyleSheet("color: gray;")
+        outer.addWidget(sub)
+
+        form = QHBoxLayout()
+        form.setSpacing(8)
+        self.name_edit = QLineEdit()
+        self.name_edit.setPlaceholderText("Exam name (e.g. USMLE Step 1)")
+        qconnect(self.name_edit.returnPressed, self._add)
+        form.addWidget(self.name_edit, 1)
+
+        self.date_edit = QDateEdit()
+        self.date_edit.setCalendarPopup(True)
+        self.date_edit.setDisplayFormat("yyyy-MM-dd")
+        self.date_edit.setDate(QDate.currentDate())
+        form.addWidget(self.date_edit)
+
+        add_btn = QPushButton("Add exam")
+        add_btn.setDefault(True)
+        qconnect(add_btn.clicked, self._add)
+        form.addWidget(add_btn)
+        outer.addLayout(form)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._list_host = QWidget()
+        self._rows = QVBoxLayout(self._list_host)
+        self._rows.setContentsMargins(0, 0, 0, 0)
+        self._rows.setSpacing(8)
+        self._rows.addStretch(1)
+        scroll.setWidget(self._list_host)
+        outer.addWidget(scroll, 1)
+
+    def _add(self) -> None:
+        name = self.name_edit.text().strip()
+        if not name:
+            return
+        iso = self.date_edit.date().toString("yyyy-MM-dd")
+        cfg = get_config()
+        cfg["exams"].append({"id": int(time.time() * 1000), "name": name, "date": iso})
+        save_config(cfg)
+        self.name_edit.clear()
+        self.name_edit.setFocus()
+        self.refresh()
+        refresh_widget()
+
+    def _delete(self, rid: str) -> None:
+        cfg = get_config()
+        cfg["exams"] = [e for e in cfg["exams"] if str(e.get("id")) != rid]
+        save_config(cfg)
+        self.refresh()
+        refresh_widget()
 
     def refresh(self) -> None:
-        self.web.stdHtml(build_editor(get_config()["exams"]))
+        # Drop existing rows (keep the trailing stretch).
+        while self._rows.count() > 1:
+            item = self._rows.takeAt(0)
+            w = item.widget()
+            if w is not None:
+                w.deleteLater()
 
-    def _on_cmd(self, cmd: str):
-        changed = False
-        if cmd.startswith("add:"):
-            try:
-                data = json.loads(cmd[4:])
-            except Exception:
-                return None
-            name = (data.get("name") or "").strip()
-            d = (data.get("date") or "").strip()
-            if name and d:
-                cfg = get_config()
-                cfg["exams"].append({"id": int(time.time() * 1000), "name": name, "date": d})
-                save_config(cfg)
-                changed = True
-        elif cmd.startswith("del:"):
-            rid = cmd[4:]
-            cfg = get_config()
-            cfg["exams"] = [e for e in cfg["exams"] if str(e.get("id")) != rid]
-            save_config(cfg)
-            changed = True
-        if changed:
-            self.refresh()
-            refresh_widget()
-        return None
+        def sort_key(e):
+            d = days_left(e.get("date", ""))
+            return (d is None, d if d is not None else 0)
+
+        exams = sorted(get_config()["exams"], key=sort_key)
+        if not exams:
+            empty = QLabel("No exams yet. Add one above to get started.")
+            empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            empty.setStyleSheet("color: gray; padding: 30px 0;")
+            self._rows.insertWidget(0, empty)
+            return
+        for i, exam in enumerate(exams):
+            self._rows.insertWidget(i, ExamRow(exam, self._delete))
 
     def closeEvent(self, ev) -> None:
         saveGeom(self, GEOM_KEY)
