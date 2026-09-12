@@ -80,13 +80,11 @@ TIMELINE_STYLE = """
 .et-focus { text-align: center; }
 .et-hero { flex: 1; text-align: center; padding: 4px 0 2px; min-width: 0; }
 .et-count { font-size: 76px; font-weight: 800; line-height: .95; letter-spacing: -.03em;
-            color: #3b82f6; transition: color .2s; }
+            color: var(--fg, #1a1a1a); }
 .et-unit { font-size: 12px; text-transform: uppercase; letter-spacing: .1em; opacity: .55;
            margin-top: 2px; }
 .et-name { font-size: 19px; font-weight: 700; margin-top: 12px; word-break: break-word; }
 .et-date { font-size: 13px; opacity: .55; margin-top: 3px; }
-.et-hero.near .et-count { color: #f59e0b; }
-.et-hero.soon .et-count { color: #ef4444; }
 
 .et-track { position: relative; height: 30px; margin: 14px 14px 0; }
 .et-rail { position: absolute; left: 0; right: 0; top: 13px; height: 2px;
@@ -96,10 +94,8 @@ TIMELINE_STYLE = """
            border: 2px solid var(--canvas, #fff); cursor: pointer;
            transition: width .15s, height .15s, background .15s, box-shadow .15s; }
 .et-tick:hover { background: #9aa0a6; }
-.et-tick.active { width: 16px; height: 16px; background: #3b82f6;
-                  box-shadow: 0 0 0 4px rgba(59,130,246,.18); }
-.et-tick.active.near { background: #f59e0b; box-shadow: 0 0 0 4px rgba(245,158,11,.18); }
-.et-tick.active.soon { background: #ef4444; box-shadow: 0 0 0 4px rgba(239,68,68,.18); }
+.et-tick.active { width: 16px; height: 16px; background: var(--fg, #555);
+                  box-shadow: 0 0 0 4px rgba(127,127,127,.2); }
 .et-counter { display: flex; align-items: center; justify-content: center; gap: 7px;
               margin-top: 5px; }
 .et-count-text { font-size: 11px; letter-spacing: .05em; opacity: .4; }
@@ -111,8 +107,8 @@ TIMELINE_STYLE = """
 .et-gear:hover { opacity: .9; background: rgba(127,127,127,.14); }
 
 .et-empty { opacity: .55; font-size: 13px; padding: 14px 2px; }
-.et-empty a { color: #3b82f6; cursor: pointer; text-decoration: none; }
-.et-empty a:hover { text-decoration: underline; }
+.et-empty a { color: var(--fg, #1a1a1a); cursor: pointer; text-decoration: underline; }
+.et-empty a:hover { opacity: .7; }
 </style>
 """
 
@@ -124,7 +120,6 @@ WIDGET_SCRIPT = """
   if (!root || !EXAMS.length) { return; }
   var focus = 0;
   var maxDays = Math.max(1, EXAMS[EXAMS.length - 1].days);
-  var hero = root.querySelector('.et-hero');
   var countEl = root.querySelector('.et-count');
   var unitEl = root.querySelector('.et-unit');
   var nameEl = root.querySelector('.et-name');
@@ -134,12 +129,11 @@ WIDGET_SCRIPT = """
   var ticks = [];
   Array.prototype.forEach.call(track.querySelectorAll('.et-tick'), function (t) { t.remove(); });
 
-  function urg(d) { return d <= 7 ? 'soon' : (d <= 30 ? 'near' : ''); }
   function posPct(d) { return EXAMS.length === 1 ? 50 : (6 + (d / maxDays) * 88); }
 
   EXAMS.forEach(function (e, i) {
     var t = document.createElement('div');
-    t.className = 'et-tick ' + urg(e.days);
+    t.className = 'et-tick';
     t.style.left = posPct(e.days) + '%';
     t.title = e.name + ' \\u2014 ' + e.pretty;
     t.addEventListener('click', function () { focus = i; render(); });
@@ -149,14 +143,13 @@ WIDGET_SCRIPT = """
 
   function render() {
     var e = EXAMS[focus];
-    hero.className = 'et-hero ' + urg(e.days);
     countEl.textContent = e.days === 0 ? '0' : String(e.days);
     unitEl.textContent = e.days === 0 ? 'today' : (e.days === 1 ? 'day left' : 'days left');
     nameEl.textContent = e.name;
     dateEl.textContent = e.pretty;
     counterEl.textContent = (focus + 1) + ' / ' + EXAMS.length;
     ticks.forEach(function (t, i) {
-      t.className = 'et-tick ' + urg(EXAMS[i].days) + (i === focus ? ' active' : '');
+      t.className = 'et-tick' + (i === focus ? ' active' : '');
     });
   }
 
@@ -173,10 +166,6 @@ WIDGET_SCRIPT = """
 })();
 </script>
 """
-
-
-def _urgency(d: int) -> str:
-    return "soon" if d <= 7 else ("near" if d <= 30 else "")
 
 
 def _pretty_date(iso: str) -> str:
@@ -267,16 +256,17 @@ def refresh_widget() -> None:
 
 
 def _row_label(exam: dict) -> tuple[str, str, str]:
-    """(big number, unit caption, urgency colour or '') for an exam row."""
+    """(big number, unit caption, colour) for an exam row. Neutral throughout;
+    past exams are muted grey, upcoming ones use the default text colour."""
     d = days_left(exam.get("date", ""))
     if d is None:
-        return "—", "", "#8a8a8a"
+        return "—", "", "gray"
     if d < 0:
-        return str(-d), "days ago", "#8a8a8a"
+        return str(-d), "days ago", "gray"
     if d == 0:
-        return "0", "today", "#ef4444"
+        return "0", "today", ""
     unit = "day left" if d == 1 else "days left"
-    return str(d), unit, {"soon": "#ef4444", "near": "#f59e0b"}.get(_urgency(d), "")
+    return str(d), unit, ""
 
 
 class ExamRow(QFrame):

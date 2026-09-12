@@ -2,8 +2,7 @@
 
 An [Anki](https://apps.ankiweb.net/) add-on that shows your upcoming exams on a
 horizontal countdown timeline. Each exam appears as a card with a large
-"days left" number, sorted so the nearest exam is first, and colour-coded by
-urgency (red within a week, amber within a month).
+"days left" number, sorted so the nearest exam is first.
 
 ## Features
 

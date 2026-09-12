@@ -12,6 +12,5 @@ All notable changes to this project are documented here. The format is based on
   upcoming exams left-to-right, each with a large "days left" countdown.
 - Separate **editor window** (Tools → Exam Timeline, or the widget's Edit
   button) to add and remove exams; changes update the widget immediately.
-- Colour-coded urgency: red within a week, amber within a month.
 - Exams persist in the add-on config; past exams are hidden from the widget
   automatically.
