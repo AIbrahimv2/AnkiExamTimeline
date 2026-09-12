@@ -77,13 +77,7 @@ TIMELINE_STYLE = """
 .et-wrap { box-sizing: border-box; width: 500px; max-width: 100%; margin: 30px auto 12px;
            padding: 6px 10px 0; text-align: left;
            font-family: -apple-system, system-ui, sans-serif; color: var(--fg, #1a1a1a); }
-.et-focus { display: flex; align-items: center; justify-content: center; gap: 6px; }
-.et-nav { flex: none; box-sizing: border-box; width: 46px; height: 46px; padding: 0;
-          display: inline-flex; align-items: center; justify-content: center;
-          border: none; background: transparent; color: var(--fg, #888); opacity: .3;
-          font-size: 30px; line-height: 1; cursor: pointer; border-radius: 10px;
-          user-select: none; transition: opacity .15s, background .15s; }
-.et-nav:hover { opacity: 1; background: rgba(127,127,127,.12); }
+.et-focus { text-align: center; }
 .et-hero { flex: 1; text-align: center; padding: 4px 0 2px; min-width: 0; }
 .et-count { font-size: 76px; font-weight: 800; line-height: .95; letter-spacing: -.03em;
             color: #3b82f6; transition: color .2s; }
@@ -166,15 +160,15 @@ WIDGET_SCRIPT = """
     });
   }
 
-  root.querySelector('.et-prev').addEventListener('click', function () {
-    focus = (focus - 1 + EXAMS.length) % EXAMS.length; render();
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') { return; }
+    var t = e.target;
+    if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) { return; }
+    if (EXAMS.length < 2) { return; }
+    e.preventDefault();
+    focus = (focus + (e.key === 'ArrowRight' ? 1 : -1) + EXAMS.length) % EXAMS.length;
+    render();
   });
-  root.querySelector('.et-next').addEventListener('click', function () {
-    focus = (focus + 1) % EXAMS.length; render();
-  });
-  if (EXAMS.length < 2) {
-    root.querySelectorAll('.et-nav').forEach(function (n) { n.style.visibility = 'hidden'; });
-  }
   render();
 })();
 </script>
@@ -233,10 +227,8 @@ def build_timeline_widget(exams: list) -> str:
     body = (
         '<div class="et-wrap" id="et-widget">'
         '<div class="et-focus">'
-        '<button class="et-nav et-prev" aria-label="Previous">&lsaquo;</button>'
         '<div class="et-hero"><div class="et-count"></div><div class="et-unit"></div>'
         '<div class="et-name"></div><div class="et-date"></div></div>'
-        '<button class="et-nav et-next" aria-label="Next">&rsaquo;</button>'
         "</div>"
         '<div class="et-track"><div class="et-rail"></div></div>'
         f'<div class="et-counter"><span class="et-count-text"></span>{_gear()}</div>'
