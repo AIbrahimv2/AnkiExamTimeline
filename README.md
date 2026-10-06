@@ -4,6 +4,8 @@ An [Anki](https://apps.ankiweb.net/) add-on that shows your upcoming exams on a
 horizontal countdown timeline. Each exam appears as a card with a large
 "days left" number, sorted so the nearest exam is first.
 
+<img width="1800" height="1169" alt="Screenshot 2026-10-06 at 12 18 54" src="https://github.com/user-attachments/assets/aaae8840-53d6-4c34-b3b0-f63387a095a1" />
+
 ## Features
 
 - **Timeline widget** on the deck (home) and deck-overview screens showing
