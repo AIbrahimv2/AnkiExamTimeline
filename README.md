@@ -6,8 +6,9 @@ horizontal countdown timeline. Each exam appears as a card with a large
 
 ## Features
 
-- **Timeline widget** on the deck (home) and deck-overview screens showing upcoming exams, nearest
-  first, each with a **large day countdown**.
+- **Timeline widget** on the deck (home) and deck-overview screens showing
+  upcoming exams, nearest first, each with a **large day countdown**. Use the
+  **← / →** arrow keys to step through exams.
 - **Separate editor window** for entering and removing exams — the widget itself
   stays read-only.
 - Exams **persist** between sessions and past exams are hidden from the widget
@@ -16,7 +17,7 @@ horizontal countdown timeline. Each exam appears as a card with a large
 ## Usage
 
 The timeline appears on the deck and deck-overview screens. To manage exams, open
-**Tools → Exam Timeline** (or click **Edit** on the widget): type a name, pick a
+**Tools → Exam Timeline** (or click the **gear** next to the countdown): type a name, pick a
 date, and click **Add exam**. Remove an exam with the **×** on its row. Changes
 appear on the deck screen immediately.
 

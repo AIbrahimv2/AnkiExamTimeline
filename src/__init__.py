@@ -4,7 +4,7 @@
 
 A read-only timeline widget is shown on the deck browser (home) screen with a
 large "days left" countdown per exam. Exams are added and removed from a
-separate editor window (Tools -> Exam Timeline, or the "Edit" button on the
+separate editor window (Tools -> Exam Timeline, or the gear button on the
 widget). Data is stored in the add-on config.
 """
 
