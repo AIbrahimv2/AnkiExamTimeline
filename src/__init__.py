@@ -167,6 +167,20 @@ WIDGET_SCRIPT = """
 </script>
 """
 
+# Some add-ons (e.g. Memory Forest, Ankimon) *prepend* to the same area we
+# append to, so hook order alone can't keep us on top. Instead the widget lifts
+# itself to sit directly under the deck list (home) or counts table (overview).
+PLACE_SCRIPT = """
+<script>
+(function () {
+  var wrap = document.getElementById('et-widget');
+  var anchor = document.getElementById('study') || document.querySelector('.decktd');
+  var table = anchor && anchor.closest('table');
+  if (wrap && table) { table.parentNode.insertBefore(wrap, table.nextSibling); }
+})();
+</script>
+"""
+
 
 def _pretty_date(iso: str) -> str:
     try:
@@ -210,8 +224,9 @@ def build_timeline_widget(exams: list) -> str:
     data = _widget_data(exams)
     if not data:
         return (
-            '<div class="et-wrap"><div class="et-empty">No upcoming exams — '
-            f"<a onclick=\"pycmd('{OPEN_CMD}')\">add one</a>.</div></div>{TIMELINE_STYLE}"
+            '<div class="et-wrap" id="et-widget"><div class="et-empty">No upcoming exams — '
+            f"<a onclick=\"pycmd('{OPEN_CMD}')\">add one</a>.</div></div>"
+            f"{TIMELINE_STYLE}{PLACE_SCRIPT}"
         )
     body = (
         '<div class="et-wrap" id="et-widget">'
@@ -224,18 +239,18 @@ def build_timeline_widget(exams: list) -> str:
         "</div>"
     )
     payload = json.dumps(data).replace("</", "<\\/")
-    return body + TIMELINE_STYLE + WIDGET_SCRIPT.replace("__DATA__", payload)
+    return body + TIMELINE_STYLE + PLACE_SCRIPT + WIDGET_SCRIPT.replace("__DATA__", payload)
 
 
 def on_deck_render(deck_browser, content) -> None:
-    """Insert the read-only timeline into the deck screen's centred stats area,
-    directly under the "studied today" line and above the heatmap add-on."""
+    """Insert the read-only timeline into the deck screen's stats area; it then
+    moves itself directly under the deck list, above every other add-on."""
     content.stats += build_timeline_widget(get_config()["exams"])
 
 
 def on_overview_render(overview, content) -> None:
-    """Insert the timeline into the deck overview, after the counts table and
-    above the heatmap add-on."""
+    """Insert the timeline into the deck overview; it then moves itself directly
+    under the counts table, above every other add-on."""
     content.table += build_timeline_widget(get_config()["exams"])
 
 
@@ -423,7 +438,8 @@ def _register_first(hook, cb) -> None:
     """Register a render hook so it runs *before* other add-ons that append to
     the same area (e.g. Review Heatmap). Running first means our widget is
     appended right after the stats/counts and the heatmap lands below it,
-    regardless of add-on load order."""
+    regardless of add-on load order. PLACE_SCRIPT does the final positioning;
+    this keeps the order sensible if it can't find its anchor."""
     hooks = getattr(hook, "_hooks", None)
     if isinstance(hooks, list):
         hooks.insert(0, cb)

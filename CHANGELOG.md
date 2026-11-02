@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- The timeline now always sits directly under the deck list (and under the
+  counts table on the overview screen), above panels from other add-ons such as
+  Memory Forest or Ankimon that insert themselves into the same area.
+
 ## [1.0.0] - 2026-10-06
 
 ### Added
