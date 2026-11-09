@@ -4,3 +4,4 @@ __pycache__/
 *.pyc
 meta.json
 .DS_Store
+tests/fixture/
