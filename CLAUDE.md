@@ -13,6 +13,9 @@ listing and AnkiWeb search.
   https://github.com/AIbrahimv2/AnkiStepwise/tree/main/.claude/skills/anki-addon-release
   (`SKILL.md`, and `scripts/` for the package and search checks).
 
-This repo: `./build.sh` builds `dist/anki-exam-timeline.ankiaddon` from `src/`.
+This repo: `./build.sh` builds the editor's web UI (`web/` into `src/web/`)
+and then `dist/anki-exam-timeline.ankiaddon` from `src/`. `./tests/run.sh` runs
+the tests. Never use `<input type="date">`, `<select>` or other native-popup
+controls in the editor page: they crash Anki's web view on macOS.
 The listing text is in `dist/ankiweb-listing.txt`, which git ignores. Move it
 to `docs/ankiweb-listing.md` the next time you edit the listing.

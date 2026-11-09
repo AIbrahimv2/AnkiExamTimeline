@@ -5,6 +5,22 @@ All notable changes to this project are documented here. The format is based on
 
 ## [Unreleased]
 
+### Changed
+
+- The editor window is redesigned. Exams show with their countdown, upcoming
+  first, with past exams folded away underneath.
+- A new date field: type the date the way you'd say it ("Nov 20", "11/20",
+  "next friday", "in 3 weeks") and it spells out the date it understood and
+  how far away it is, or tells you what's wrong ("November has only 30 days").
+  Or pick it from a new calendar that marks the days you already have exams
+  on, has quick picks (1 week, 2 weeks, 1 month, 3 months) and works from the
+  keyboard.
+
+### Added
+
+- Edit an exam's name or date in place.
+- Undo after removing an exam.
+
 ### Fixed
 
 - The timeline now always sits directly under the deck list (and under the
