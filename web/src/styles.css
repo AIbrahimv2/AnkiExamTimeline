@@ -1,0 +1,384 @@
+/* Exam Timeline's editor. Built on Anki's own theme variables (--canvas, --fg,
+   ...) so it follows Anki's light and dark modes; the fallbacks are Anki's
+   own values, so the dev preview matches. Same look as the Stepwise add-on. */
+
+:root {
+  --bg: var(--canvas, #f5f5f5);
+  --surface: var(--canvas-elevated, #ffffff);
+  --text: var(--fg, #020202);
+  --text-2: var(--fg-subtle, #737373);
+  --text-3: color-mix(in srgb, var(--text) 45%, var(--surface));
+  --ink: var(--fg, #0a0a0a);
+  --accent: #3b82f6;
+  --danger: #e5484d;
+  --line: color-mix(in srgb, var(--ink) 9%, transparent);
+  --line-strong: color-mix(in srgb, var(--ink) 15%, transparent);
+  --hover: color-mix(in srgb, var(--ink) 4.5%, transparent);
+  --press: color-mix(in srgb, var(--ink) 8%, transparent);
+  --sunken: color-mix(in srgb, var(--ink) 3%, var(--surface));
+  --accent-soft: color-mix(in srgb, var(--accent) 12%, transparent);
+  --danger-soft: color-mix(in srgb, var(--danger) 12%, transparent);
+  --radius: 14px;
+  --radius-md: 10px;
+  --radius-sm: 7px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 2px 12px rgb(0 0 0 / 0.04);
+  --shadow-pop: 0 1px 2px rgb(0 0 0 / 0.06), 0 12px 32px -6px rgb(0 0 0 / 0.2);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+
+:root.night-mode {
+  --bg: var(--canvas, #2c2c2c);
+  --surface: var(--canvas-elevated, #363636);
+  --text: var(--fg, #fcfcfc);
+  /* Anki's dark greys are too dim for small text on its panels; mix them from
+     the text and panel colours instead (about 8:1 and 5:1). */
+  --text-2: color-mix(in srgb, var(--text) 80%, var(--surface));
+  --text-3: color-mix(in srgb, var(--text) 62%, var(--surface));
+  --ink: #ffffff;
+  --accent: #60a5fa;
+  --danger: #ff9592;
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.14);
+  --hover: rgb(255 255 255 / 0.06);
+  --press: rgb(255 255 255 / 0.1);
+  --sunken: rgb(0 0 0 / 0.16);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-pop: 0 0 0 1px rgb(255 255 255 / 0.07), 0 16px 40px -8px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+
+html, body { margin: 0; min-height: 100%; background: var(--bg); }
+
+body {
+  color: var(--text);
+  font: 13px/1.4 var(--font);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+
+/* Anki's webview.css styles bare buttons and inputs; start from a clean slate. */
+#root button {
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: none;
+  min-width: 0;
+  height: auto;
+}
+#root input {
+  appearance: none;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  box-shadow: none;
+  user-select: text;
+}
+#root button:focus-visible,
+#root input:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--accent) 60%, transparent);
+  outline-offset: 1px;
+}
+
+.page { max-width: 640px; margin: 0 auto; padding: 18px 18px 80px; }
+.loading { padding: 40px; text-align: center; color: var(--text-2); }
+
+h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+.count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--line);
+  color: var(--text-2);
+  line-height: 17px;
+  letter-spacing: 0;
+}
+
+/* --- controls -------------------------------------------------------------- */
+
+#root .text {
+  width: 100%;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-size: 14px;
+}
+#root .text::placeholder, #root .df-box input::placeholder { color: var(--text-3); }
+#root .text:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 3px var(--accent-soft); }
+#root .text.bad { border-color: var(--danger); }
+
+#root .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  font-weight: 600;
+  white-space: nowrap;
+}
+#root .btn:hover { background: color-mix(in srgb, var(--ink) 4%, var(--surface)); }
+#root .btn.primary { background: var(--text); color: var(--surface); border-color: transparent; }
+#root .btn.primary:hover { opacity: 0.88; }
+#root .btn.ghost { border-color: transparent; background: transparent; color: var(--text-2); }
+#root .btn.ghost:hover { background: var(--hover); color: var(--text); }
+#root .btn.sm { height: 28px; padding: 0 10px; border-radius: var(--radius-sm); }
+
+#root .icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+}
+#root .icon-btn:hover { background: var(--hover); color: var(--text); }
+#root .icon-btn.bad:hover { background: var(--danger-soft); color: var(--danger); }
+
+#root .chip {
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+#root .chip:hover { background: var(--hover); color: var(--text); }
+
+/* --- add form -------------------------------------------------------------- */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px;
+}
+.add { display: grid; gap: 10px; margin-bottom: 22px; }
+.add h2 { margin-bottom: 2px; }
+.add-row { display: flex; gap: 10px; align-items: flex-start; }
+.add-row .datefield { flex: 1; min-width: 0; }
+.form-error { color: var(--danger); font-size: 12px; margin-top: -4px; }
+.banner-error {
+  margin: -8px 0 16px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+
+/* --- date field ------------------------------------------------------------ */
+
+.datefield { position: relative; }
+.df-box {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+}
+.df-box:focus-within, .df-box.open { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.df-box.bad { border-color: var(--danger); }
+#root .df-cal {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 100%;
+  color: var(--text-2);
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+#root .df-cal:hover { color: var(--accent); }
+#root .df-box input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0 12px 0 0;
+  border: 0;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+}
+.df-hint {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 10px;
+  min-height: 18px;
+  margin: 5px 2px 0;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.df-hint.bad { color: var(--danger); }
+.df-long { color: var(--text-2); }
+.df-rel { color: var(--accent); font-weight: 600; }
+.df-rel.past { color: var(--text-3); }
+
+/* --- calendar -------------------------------------------------------------- */
+
+.cal {
+  position: absolute;
+  z-index: 20;
+  top: 42px;
+  left: 0;
+  width: 296px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-pop);
+  border: 1px solid var(--line);
+  animation: pop 0.12s ease-out;
+}
+@keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(0.98); } }
+.cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+.cal-title { font-weight: 650; font-size: 14px; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  outline: none;
+  border-radius: var(--radius-md);
+}
+.cal-grid:focus-visible { box-shadow: 0 0 0 2px var(--accent-soft); }
+.cal-dow {
+  height: 24px;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-3);
+}
+#root .cal-day {
+  position: relative;
+  height: 34px;
+  border-radius: 9px;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+}
+#root .cal-day:hover { background: var(--hover); }
+#root .cal-day.out { color: var(--text-3); }
+#root .cal-day.past { color: var(--text-3); }
+#root .cal-day.today { box-shadow: inset 0 0 0 1.5px var(--accent); color: var(--accent); font-weight: 650; }
+.cal-grid:focus .cal-day.cursor { background: var(--hover); box-shadow: inset 0 0 0 1.5px var(--line-strong); }
+.cal-grid:focus .cal-day.today.cursor { box-shadow: inset 0 0 0 1.5px var(--accent); }
+#root .cal-day.picked,
+.cal-grid:focus .cal-day.picked { background: var(--accent); color: #fff; font-weight: 650; box-shadow: none; }
+.cal-dot {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.cal-day.picked .cal-dot { background: #fff; }
+.cal-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+#root .cal-quick .chip { padding: 0 4px; white-space: nowrap; }
+
+/* --- exam list --------------------------------------------------------------- */
+
+.list { margin-bottom: 18px; }
+.list > .exam + .exam { margin-top: 8px; }
+.exam {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 10px 10px 8px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.exam-count {
+  flex: none;
+  width: 68px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+.exam-big { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.exam-unit { margin-top: 4px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-3); white-space: nowrap; }
+.exam.is-today .exam-big, .exam.is-today .exam-unit { color: var(--accent); }
+.exam-main { flex: 1; min-width: 0; }
+.exam-name { font-size: 14px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exam-date { margin-top: 2px; font-size: 12px; color: var(--text-2); }
+.exam-actions { display: flex; gap: 2px; opacity: 0; transition: opacity 0.12s; }
+.exam:hover .exam-actions, .exam:focus-within .exam-actions { opacity: 1; }
+.exam.past { background: transparent; }
+.exam.past .exam-big, .exam.past .exam-name { color: var(--text-2); }
+
+.exam.editing { display: grid; gap: 10px; padding: 12px; border-color: var(--accent); }
+.edit-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+.empty {
+  padding: 26px 16px;
+  text-align: center;
+  color: var(--text-2);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+}
+#root .past-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+#root .past-toggle svg { transition: transform 0.14s; }
+#root .past-toggle svg.open { transform: rotate(90deg); }
+
+/* --- toast ----------------------------------------------------------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 6px 6px 14px;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--surface);
+  box-shadow: var(--shadow-pop);
+  font-weight: 500;
+  animation: rise 0.16s ease-out;
+}
+#root .toast .btn.ghost { color: var(--surface); opacity: 0.85; }
+#root .toast .btn.ghost:hover { background: rgb(127 127 127 / 0.25); color: var(--surface); opacity: 1; }
+@keyframes rise { from { opacity: 0; transform: translate(-50%, 6px); } }
+
+@media (max-width: 460px) {
+  .page { padding: 12px 12px 72px; }
+  .add-row { flex-direction: column; align-items: stretch; }
+}

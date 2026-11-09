@@ -5,69 +5,25 @@
 A read-only timeline widget is shown on the deck browser (home) screen with a
 large "days left" countdown per exam. Exams are added and removed from a
 separate editor window (Tools -> Exam Timeline, or the gear button on the
-widget). Data is stored in the add-on config.
+widget), a web page in editor.py. Data is stored in the add-on config.
 """
 
 from __future__ import annotations
 
-import html as _html
 import json
-import time
 from datetime import date
 
 from aqt import gui_hooks, mw
-from aqt.qt import (
-    QAction,
-    QDate,
-    QDateEdit,
-    QDialog,
-    QFrame,
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QPushButton,
-    QScrollArea,
-    Qt,
-    QVBoxLayout,
-    QWidget,
-    qconnect,
-)
-from aqt.utils import restoreGeom, saveGeom
+from aqt.qt import QAction, qconnect
 
-GEOM_KEY = "exam_timeline"
+from .editor import open_editor
+from .exams import ConfigStore, upcoming
+
 OPEN_CMD = "examtl:open"
 
 
-# --- data --------------------------------------------------------------------
-
-
 def get_config() -> dict:
-    cfg = mw.addonManager.getConfig(__name__) or {}
-    if not isinstance(cfg.get("exams"), list):
-        cfg["exams"] = []
-    return cfg
-
-
-def save_config(cfg: dict) -> None:
-    mw.addonManager.writeConfig(__name__, cfg)
-
-
-def days_left(iso: str):
-    try:
-        return (date.fromisoformat(iso) - date.today()).days
-    except Exception:
-        return None
-
-
-def upcoming(exams: list) -> list:
-    """Exams from today onward, sorted nearest-first, as (exam, days) tuples."""
-    rows = []
-    for e in exams:
-        d = days_left(e.get("date", ""))
-        if d is not None and d >= 0:
-            rows.append((e, d))
-    rows.sort(key=lambda x: x[1])
-    return rows
+    return ConfigStore(__name__).load()
 
 
 # --- timeline widget (deck browser) ------------------------------------------
@@ -261,177 +217,14 @@ def on_js_message(handled, message: str, context):
     return handled
 
 
-# --- editor window -----------------------------------------------------------
-
-def refresh_widget() -> None:
-    if mw.state == "deckBrowser":
-        mw.deckBrowser.refresh()
-    elif mw.state == "overview":
-        mw.overview.refresh()
-
-
-def _row_label(exam: dict) -> tuple[str, str, str]:
-    """(big number, unit caption, colour) for an exam row. Neutral throughout;
-    past exams are muted grey, upcoming ones use the default text colour."""
-    d = days_left(exam.get("date", ""))
-    if d is None:
-        return "—", "", "gray"
-    if d < 0:
-        return str(-d), "days ago", "gray"
-    if d == 0:
-        return "0", "today", ""
-    unit = "day left" if d == 1 else "days left"
-    return str(d), unit, ""
-
-
-class ExamRow(QFrame):
-    def __init__(self, exam: dict, on_delete):
-        super().__init__()
-        self.setFrameShape(QFrame.Shape.StyledPanel)
-        lay = QHBoxLayout(self)
-        lay.setContentsMargins(12, 8, 10, 8)
-        lay.setSpacing(14)
-
-        big, unit, color = _row_label(exam)
-        col = f"color:{color};" if color else ""
-        days = QLabel(
-            f"<div align='center'><span style='font-size:21px;font-weight:800;{col}'>{big}</span>"
-            f"<br><span style='font-size:9px;color:gray'>{unit}</span></div>"
-        )
-        days.setFixedWidth(70)
-        lay.addWidget(days)
-
-        name = _html.escape(exam.get("name", ""))
-        iso = _html.escape(exam.get("date", ""))
-        info = QLabel(
-            f"<b style='font-size:14px'>{name}</b>"
-            f"<br><span style='color:gray;font-size:11px'>{iso}</span>"
-        )
-        info.setTextFormat(Qt.TextFormat.RichText)
-        lay.addWidget(info, 1)
-
-        remove = QPushButton("Remove")
-        remove.setAutoDefault(False)
-        qconnect(remove.clicked, lambda: on_delete(str(exam.get("id"))))
-        lay.addWidget(remove)
-
-
-class EditorDialog(QDialog):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.setWindowTitle("Exam Timeline")
-        self.resize(520, 560)
-        restoreGeom(self, GEOM_KEY)
-
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(20, 18, 20, 18)
-        outer.setSpacing(14)
-
-        title = QLabel("Exam Timeline")
-        tf = title.font()
-        tf.setPointSize(tf.pointSize() + 5)
-        tf.setBold(True)
-        title.setFont(tf)
-        outer.addWidget(title)
-
-        sub = QLabel("Add your upcoming exams — they appear on the deck screen.")
-        sub.setStyleSheet("color: gray;")
-        outer.addWidget(sub)
-
-        form = QHBoxLayout()
-        form.setSpacing(8)
-        self.name_edit = QLineEdit()
-        self.name_edit.setPlaceholderText("Exam name (e.g. USMLE Step 1)")
-        qconnect(self.name_edit.returnPressed, self._add)
-        form.addWidget(self.name_edit, 1)
-
-        self.date_edit = QDateEdit()
-        self.date_edit.setCalendarPopup(True)
-        self.date_edit.setDisplayFormat("yyyy-MM-dd")
-        self.date_edit.setDate(QDate.currentDate())
-        form.addWidget(self.date_edit)
-
-        add_btn = QPushButton("Add exam")
-        add_btn.setDefault(True)
-        qconnect(add_btn.clicked, self._add)
-        form.addWidget(add_btn)
-        outer.addLayout(form)
-
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self._list_host = QWidget()
-        self._rows = QVBoxLayout(self._list_host)
-        self._rows.setContentsMargins(0, 0, 0, 0)
-        self._rows.setSpacing(8)
-        self._rows.addStretch(1)
-        scroll.setWidget(self._list_host)
-        outer.addWidget(scroll, 1)
-
-    def _add(self) -> None:
-        name = self.name_edit.text().strip()
-        if not name:
-            return
-        iso = self.date_edit.date().toString("yyyy-MM-dd")
-        cfg = get_config()
-        cfg["exams"].append({"id": int(time.time() * 1000), "name": name, "date": iso})
-        save_config(cfg)
-        self.name_edit.clear()
-        self.name_edit.setFocus()
-        self.refresh()
-        refresh_widget()
-
-    def _delete(self, rid: str) -> None:
-        cfg = get_config()
-        cfg["exams"] = [e for e in cfg["exams"] if str(e.get("id")) != rid]
-        save_config(cfg)
-        self.refresh()
-        refresh_widget()
-
-    def refresh(self) -> None:
-        # Drop existing rows (keep the trailing stretch).
-        while self._rows.count() > 1:
-            item = self._rows.takeAt(0)
-            w = item.widget()
-            if w is not None:
-                w.deleteLater()
-
-        def sort_key(e):
-            d = days_left(e.get("date", ""))
-            return (d is None, d if d is not None else 0)
-
-        exams = sorted(get_config()["exams"], key=sort_key)
-        if not exams:
-            empty = QLabel("No exams yet. Add one above to get started.")
-            empty.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            empty.setStyleSheet("color: gray; padding: 30px 0;")
-            self._rows.insertWidget(0, empty)
-            return
-        for i, exam in enumerate(exams):
-            self._rows.insertWidget(i, ExamRow(exam, self._delete))
-
-    def closeEvent(self, ev) -> None:
-        saveGeom(self, GEOM_KEY)
-        super().closeEvent(ev)
-
-
-_dialog = None
-
-
-def open_editor() -> None:
-    global _dialog
-    if _dialog is None:
-        _dialog = EditorDialog(mw)
-    _dialog.refresh()
-    _dialog.show()
-    _dialog.raise_()
-    _dialog.activateWindow()
-
-
 def _install() -> None:
     action = QAction("Exam Timeline", mw)
     qconnect(action.triggered, open_editor)
     mw.form.menuTools.addAction(action)
+
+
+# The editor's page loads its built script and styles from /_addons/<folder>/web/.
+mw.addonManager.setWebExports(__name__, r"web/.*\.(js|css)")
 
 
 def _register_first(hook, cb) -> None:
