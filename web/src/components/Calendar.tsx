@@ -1,5 +1,5 @@
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import { type KeyboardEvent, type RefObject, useEffect, useRef, useState } from "react";
 import { addDays, addMonths, dayDiff, formatLong, formatMonth, relative, sameDay, toISO } from "../dates";
 
 const WEEK = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
@@ -25,13 +25,25 @@ export function Calendar(props: {
   marks: Map<string, string[]>;
   onPick: (d: Date) => void;
   onClose: () => void;
+  /** Take the keyboard on opening (otherwise the text box keeps it). */
+  takeKeys?: boolean;
+  gridRef?: RefObject<HTMLDivElement | null>;
 }) {
   const { today, marks } = props;
   const [cursor, setCursor] = useState<Date>(props.value ?? today);
   const [view, setView] = useState({ y: cursor.getFullYear(), m: cursor.getMonth() });
-  const grid = useRef<HTMLDivElement>(null);
+  const ownGrid = useRef<HTMLDivElement>(null);
+  const grid = props.gridRef ?? ownGrid;
 
-  useEffect(() => grid.current?.focus({ preventScroll: true }), []);
+  useEffect(() => {
+    if (props.takeKeys) grid.current?.focus({ preventScroll: true });
+  }, []);
+
+  // Typing a date in the box shows it here.
+  const typed = props.value ? toISO(props.value) : null;
+  useEffect(() => {
+    if (props.value) moveTo(props.value);
+  }, [typed]);
 
   const moveTo = (d: Date) => {
     setCursor(d);
@@ -73,7 +85,9 @@ export function Calendar(props: {
   const days = Array.from({ length: 42 }, (_, i) => addDays(start, i));
 
   return (
-    <div className="cal" role="dialog" aria-label="Choose a date">
+    // tabIndex: a click on the calendar's background keeps focus inside the
+    // field, so it doesn't count as leaving it.
+    <div className="cal" role="dialog" aria-label="Choose a date" tabIndex={-1}>
       <div className="cal-head">
         <button type="button" className="icon-btn" aria-label="Previous month" title="Previous month (Page Up)" onClick={() => shiftMonth(-1)}>
           <ChevronLeft size={16} />

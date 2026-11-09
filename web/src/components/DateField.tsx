@@ -15,7 +15,7 @@ export function DateField(props: {
   marks: Map<string, string[]>;
   /** Show the hint as an error (the form was submitted without a date). */
   showError?: boolean;
-  /** Enter in the text box, with the calendar closed. */
+  /** Enter in the text box (it closes the calendar too). */
   onEnter?: () => void;
   placeholder?: string;
   inputRef?: RefObject<HTMLInputElement | null>;
@@ -25,6 +25,10 @@ export function DateField(props: {
   const value = fromISO(props.value);
   const [text, setText] = useState(value ? formatShort(value) : "");
   const [open, setOpen] = useState(false);
+  // Whether the calendar takes the keys when it opens (the icon, or ↓) or
+  // leaves them in the text box (a click in the box, to type or to pick).
+  const [grab, setGrab] = useState(false);
+  const grid = useRef<HTMLDivElement>(null);
   // The value this field last sent up, so its own echo doesn't rewrite the text.
   const sent = useRef<string | null>(props.value);
   const box = useRef<HTMLDivElement>(null);
@@ -42,6 +46,12 @@ export function DateField(props: {
   const send = (iso: string | null) => {
     sent.current = iso;
     props.onChange(iso);
+  };
+
+  const show = (takeKeys: boolean) => {
+    setGrab(takeKeys);
+    setOpen(true);
+    if (takeKeys && open) grid.current?.focus();
   };
 
   // Clicking anywhere else closes the calendar.
@@ -70,10 +80,11 @@ export function DateField(props: {
   const onKey = (e: KeyboardEvent) => {
     if (e.key === "ArrowDown") {
       e.preventDefault();
-      setOpen(true);
-    } else if (e.key === "Enter" && !open) {
+      show(true);
+    } else if (e.key === "Enter") {
       e.preventDefault();
       if (parsed) setText(formatShort(parsed));
+      setOpen(false);
       props.onEnter?.();
     } else if (e.key === "Escape" && open) {
       e.preventDefault();
@@ -85,7 +96,14 @@ export function DateField(props: {
   const bad = !!text.trim() && !parsed;
   const missing = !text.trim() && props.showError;
   return (
-    <div className="datefield" ref={box}>
+    <div
+      className="datefield"
+      ref={box}
+      onBlur={(e) => {
+        // Focus left the field and its calendar (Tab, or a click elsewhere).
+        if (!box.current?.contains(e.relatedTarget as Node | null)) setOpen(false);
+      }}
+    >
       <div className={`df-box${bad || missing ? " bad" : ""}${open ? " open" : ""}`}>
         <button
           type="button"
@@ -93,7 +111,8 @@ export function DateField(props: {
           aria-label="Open the calendar"
           aria-expanded={open}
           title="Open the calendar (↓)"
-          onClick={() => setOpen((o) => !o)}
+          onMouseDown={(e) => e.preventDefault() /* focus stays put; the click decides */}
+          onClick={() => (open ? setOpen(false) : show(true))}
         >
           <CalendarDays size={16} />
         </button>
@@ -105,6 +124,7 @@ export function DateField(props: {
           value={text}
           spellCheck={false}
           autoComplete="off"
+          onClick={() => show(false)}
           onBlur={() => parsed && setText(formatShort(parsed))}
           onChange={(e) => type(e.target.value)}
           onKeyDown={onKey}
@@ -124,7 +144,20 @@ export function DateField(props: {
           "Type it, or pick it from the calendar."
         )}
       </div>
-      {open && <Calendar value={parsed ?? value} today={today} marks={props.marks} onPick={pick} onClose={() => { setOpen(false); input.current?.focus(); }} />}
+      {open && (
+        <Calendar
+          value={parsed ?? value}
+          today={today}
+          marks={props.marks}
+          gridRef={grid}
+          takeKeys={grab}
+          onPick={pick}
+          onClose={() => {
+            setOpen(false);
+            input.current?.focus();
+          }}
+        />
+      )}
     </div>
   );
 }

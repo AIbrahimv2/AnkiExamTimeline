@@ -242,7 +242,8 @@ h2 {
 .cal {
   position: absolute;
   z-index: 20;
-  top: 42px;
+  /* Under the hint, which keeps showing the date as you type. */
+  top: calc(100% + 2px);
   left: 0;
   width: 296px;
   padding: 10px;
@@ -252,6 +253,7 @@ h2 {
   border: 1px solid var(--line);
   animation: pop 0.12s ease-out;
 }
+.cal:focus { outline: none; }
 @keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(0.98); } }
 .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
 .cal-title { font-weight: 650; font-size: 14px; }

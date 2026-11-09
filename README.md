@@ -28,8 +28,8 @@ The timeline appears on the deck and deck-overview screens. To manage exams, ope
 and a date, and press **Enter** or click **Add exam**. Hover over an exam to edit
 it (pencil) or remove it (**×**). Changes appear on the deck screen immediately.
 
-In the date field, **↓** opens the calendar. There, the arrow keys move a day or a
-week, **Page Up / Page Down** a month (with **Shift**, a year), **Enter** picks the
+Clicking in the date field opens the calendar, which follows what you type; **↓**
+moves into it. There, the arrow keys move a day or a week, **Page Up / Page Down** a month (with **Shift**, a year), **Enter** picks the
 day and **Esc** closes it.
 
 ## Installation

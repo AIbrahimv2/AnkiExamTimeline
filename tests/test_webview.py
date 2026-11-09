@@ -31,7 +31,7 @@ if not os.path.islink(link):
     os.symlink(SRC, link)
 sys.path.insert(0, os.path.dirname(link))
 
-from aqt.qt import QApplication, QEvent, QKeyEvent, QMenu, Qt, QWidget  # noqa: E402
+from aqt.qt import QApplication, QEvent, QKeyEvent, QMenu, QMouseEvent, QPointF, Qt, QWidget  # noqa: E402
 
 app = QApplication.instance() or QApplication(["test"])
 import aqt  # noqa: E402
@@ -183,6 +183,20 @@ def key(name):
     settle(10)
 
 
+def mouse(sel):
+    """A real click, through Qt, on the middle of an element."""
+    x, y = json.loads(js("JSON.stringify((() => { const r = document.querySelector(%s).getBoundingClientRect();"
+                         " return [r.x + r.width / 2, r.y + r.height / 2]; })())" % json.dumps(sel)))
+    at = QPointF(x, y)
+    left = Qt.MouseButton.LeftButton
+    for kind, held in ((QEvent.Type.MouseButtonPress, left), (QEvent.Type.MouseButtonRelease, Qt.MouseButton.NoButton)):
+        QApplication.sendEvent(proxy(), QMouseEvent(kind, at, at, left, held, Qt.KeyboardModifier.NoModifier))
+    settle(12)
+
+
+CAL_OPEN = "!!document.querySelector('.add .cal')"
+
+
 # --- it opens with the exams ------------------------------------------------------
 assert wait_for("document.querySelectorAll('.exam').length === 1"), "the upcoming exam shows"
 assert js("document.querySelector('.exam-name').textContent") == "B&B NBME"
@@ -212,17 +226,37 @@ assert js("document.querySelector('.add > input').value") == "" and js(f"documen
 print("typing a date works")
 
 # --- picking one with the mouse ------------------------------------------------------
-click(".add .df-cal")
-assert wait_for("document.querySelectorAll('.cal .cal-day').length === 42"), "the calendar opens"
+d.web.setFocus()
+mouse(".add .df-cal")
+assert wait_for("document.querySelectorAll('.cal .cal-day').length === 42"), "clicking the icon opens the calendar"
+assert js("document.activeElement.classList.contains('cal-grid')"), "and gives it the keys"
 assert js(NATIVE) == 0
 assert js("document.querySelector('.cal .cal-day.today').textContent") == str(TODAY.day)
 assert js("document.querySelectorAll('.cal .cal-dot').length") >= 1, "exam days carry a dot"
-click(".cal .chip")  # In 1 week
+mouse(".add .cal-title")
+assert js(CAL_OPEN), "a click on the calendar itself keeps it open"
+mouse(".add .df-cal")
+assert not js(CAL_OPEN), "the icon again closes it"
+
+mouse(ADD_DATE)
+assert js(CAL_OPEN), "clicking in the date box opens the calendar too"
+assert js("document.activeElement.matches('.add .df-box input')"), "and you can still type"
+assert js("document.querySelector('.add .cal').getBoundingClientRect().top"
+          " >= document.querySelector('.add .df-hint').getBoundingClientRect().bottom"), "the hint stays in view"
+typed(ADD_DATE, "dec 25 2027")
+assert js("document.querySelector('.add .cal-title').textContent") == "December 2027", "the calendar follows typing"
+assert js("document.querySelector('.add .cal-day.picked').textContent") == "25"
+mouse(".add > input")
+assert not js(CAL_OPEN), "clicking elsewhere closes it"
+typed(ADD_DATE, "")
+
+mouse(".add .df-cal")
+mouse(".add .cal .chip")  # 1 week
 want = TODAY + timedelta(days=7)
-assert not js("!!document.querySelector('.cal')"), "picking closes it"
+assert not js(CAL_OPEN), "picking closes it"
 assert js(HINT).endswith("in 7 days"), js(HINT)
 typed(".add > input", "Shelf")
-click(".add-btn")
+mouse(".add-btn")
 assert wait_for("document.querySelectorAll('.exam').length === 3")
 assert any(e["name"] == "Shelf" and e["date"] == want.isoformat() for e in exams())
 print("picking from the calendar works")
