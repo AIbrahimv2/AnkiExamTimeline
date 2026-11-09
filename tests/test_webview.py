@@ -278,6 +278,15 @@ assert editor._dialog is d, "one window"
 assert wait_for("document.querySelectorAll('.exam').length === 4"), "reopening shows changes made elsewhere"
 print("reopening reloads")
 
+# --- the window stays a sensible size --------------------------------------------------
+d.resize(3000, 3000)
+settle()
+assert (d.width(), d.height()) == (680, 900), (d.width(), d.height())
+d.resize(100, 100)
+settle()
+assert (d.width(), d.height()) == (380, 420), (d.width(), d.height())
+print("window size is capped")
+
 print("\nWEBVIEW TEST PASSED")
 srv.shutdown()
 # QtWebEngine can crash in its own teardown after the test has finished: leave

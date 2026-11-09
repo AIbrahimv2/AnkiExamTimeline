@@ -50,6 +50,9 @@ class EditorDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Exam Timeline")
         self.setMinimumSize(380, 420)
+        # No bigger than the page needs: its column stops at 676px wide, and a
+        # long list scrolls. Also caps a saved size and the green zoom button.
+        self.setMaximumSize(680, 900)
         self.resize(560, 640)
         restoreGeom(self, GEOM_KEY)
 
