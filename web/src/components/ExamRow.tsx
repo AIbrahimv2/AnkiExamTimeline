@@ -64,6 +64,7 @@ export function ExamRow(props: {
           ref={nameInput}
           className={`text${tried && !name.trim() ? " bad" : ""}`}
           aria-label="Exam name"
+          placeholder="Exam name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && save()}

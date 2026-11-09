@@ -1,12 +1,13 @@
 import { CalendarDays } from "lucide-react";
-import { type KeyboardEvent, type RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { type KeyboardEvent, type RefObject, useEffect, useId, useMemo, useRef, useState } from "react";
 import { dayDiff, formatLong, formatShort, fromISO, parseLoose, relative, toISO, whyNot } from "../dates";
 import { Calendar } from "./Calendar";
 
 /**
  * A date you can type the way you'd say it ("Nov 20", "in 3 weeks", "next
- * friday") or pick from a calendar. Underneath, it spells out the date it
- * understood and how far away it is, so a typo can't slip through.
+ * friday") or pick from the calendar, which opens while the box has focus and
+ * shows the date as it's typed. How far away it is sits at the end of the box
+ * (the full date in its tooltip); a date it can't read is explained below.
  */
 export function DateField(props: {
   value: string | null;
@@ -26,9 +27,14 @@ export function DateField(props: {
   const [text, setText] = useState(value ? formatShort(value) : "");
   const [open, setOpen] = useState(false);
   // Whether the calendar takes the keys when it opens (the icon, or ↓) or
-  // leaves them in the text box (a click in the box, to type or to pick).
+  // leaves them in the text box (it opens whenever the box has focus, so you
+  // can type or pick).
   const [grab, setGrab] = useState(false);
   const grid = useRef<HTMLDivElement>(null);
+  // Set while the field puts focus back in the box itself (after a pick, or
+  // Esc), so that doesn't open the calendar again.
+  const quiet = useRef(false);
+  const noteId = useId();
   // The value this field last sent up, so its own echo doesn't rewrite the text.
   const sent = useRef<string | null>(props.value);
   const box = useRef<HTMLDivElement>(null);
@@ -70,11 +76,17 @@ export function DateField(props: {
     send(d ? toISO(d) : null);
   };
 
+  const refocus = () => {
+    quiet.current = true;
+    input.current?.focus();
+    quiet.current = false;
+  };
+
   const pick = (d: Date) => {
     setText(formatShort(d));
     send(toISO(d));
     setOpen(false);
-    input.current?.focus();
+    refocus();
   };
 
   const onKey = (e: KeyboardEvent) => {
@@ -111,6 +123,7 @@ export function DateField(props: {
           aria-label="Open the calendar"
           aria-expanded={open}
           title="Open the calendar (↓)"
+          tabIndex={-1} /* Tab goes straight to the box, which opens it anyway */
           onMouseDown={(e) => e.preventDefault() /* focus stays put; the click decides */}
           onClick={() => (open ? setOpen(false) : show(true))}
         >
@@ -120,30 +133,33 @@ export function DateField(props: {
           ref={input}
           type="text"
           aria-label={props.label}
-          placeholder={props.placeholder ?? "Date, like Nov 20 or in 3 weeks"}
+          placeholder={props.placeholder ?? "Exam date"}
+          aria-describedby={parsed || bad || missing ? noteId : undefined}
           value={text}
           spellCheck={false}
           autoComplete="off"
+          onFocus={() => !quiet.current && show(false)}
           onClick={() => show(false)}
           onBlur={() => parsed && setText(formatShort(parsed))}
           onChange={(e) => type(e.target.value)}
           onKeyDown={onKey}
         />
-      </div>
-      <div className={`df-hint${bad || missing ? " bad" : ""}`} aria-live="polite">
-        {parsed ? (
-          <>
-            <span className="df-long">{formatLong(parsed)}</span>
-            <span className={`df-rel${dayDiff(today, parsed) < 0 ? " past" : ""}`}>{relative(dayDiff(today, parsed))}</span>
-          </>
-        ) : bad ? (
-          whyNot(text) ?? "Can't read that date. Try “Nov 20”, “11/20” or “in 3 weeks”."
-        ) : missing ? (
-          "Pick a date for the exam."
-        ) : (
-          "Type it, or pick it from the calendar."
+        {parsed && (
+          <span
+            id={noteId}
+            className={`df-rel${dayDiff(today, parsed) < 0 ? " past" : ""}`}
+            title={formatLong(parsed)}
+            aria-label={`${formatLong(parsed)}, ${relative(dayDiff(today, parsed))}`}
+          >
+            {relative(dayDiff(today, parsed))}
+          </span>
         )}
       </div>
+      {(bad || missing) && (
+        <div id={noteId} className="df-hint" aria-live="polite">
+          {bad ? whyNot(text) ?? "Can't read that date. Try “Nov 20” or “in 3 weeks”." : "Pick a date for the exam."}
+        </div>
+      )}
       {open && (
         <Calendar
           value={parsed ?? value}
@@ -154,7 +170,7 @@ export function DateField(props: {
           onPick={pick}
           onClose={() => {
             setOpen(false);
-            input.current?.focus();
+            refocus();
           }}
         />
       )}

@@ -155,7 +155,10 @@ js("""window.typeInto = (sel, text) => {
   return true;
 }; 1""")
 NATIVE = "document.querySelectorAll('select, datalist').length + [...document.querySelectorAll('input')].filter((i) => i.type !== 'text').length"
-HINT = "document.querySelector('.add .df-hint').textContent"
+HINT = "document.querySelector('.add .df-hint')?.textContent ?? ''"  # only says something when it's wrong
+REL = "document.querySelector('.add .df-rel')?.textContent ?? ''"  # how far away, at the end of the box
+FULL = "document.querySelector('.add .df-rel')?.title ?? ''"  # and the full date, in its tooltip
+spelled = lambda d: d.strftime("%A, %B ") + str(d.day) + d.strftime(", %Y")  # noqa: E731
 ADD_DATE = ".add .df-box input"
 
 
@@ -173,7 +176,7 @@ def click(sel):
 # Real key presses, through Qt, as Anki gets them.
 proxy = lambda: d.web.focusProxy() or d.web  # noqa: E731
 KEYS = {"Down": (Qt.Key.Key_Down, ""), "Right": (Qt.Key.Key_Right, ""), "Enter": (Qt.Key.Key_Return, "\r"),
-        "Escape": (Qt.Key.Key_Escape, "\x1b"), "PageDown": (Qt.Key.Key_PageDown, "")}
+        "Escape": (Qt.Key.Key_Escape, "\x1b"), "PageDown": (Qt.Key.Key_PageDown, ""), "Tab": (Qt.Key.Key_Tab, "\t")}
 
 
 def key(name):
@@ -208,9 +211,10 @@ print("opens with the exams")
 # --- typing a date --------------------------------------------------------------------
 typed(ADD_DATE, "in 3 weeks")
 want = TODAY + timedelta(days=21)
-assert js(HINT) == want.strftime("%A, %B ") + str(want.day) + want.strftime(", %Y") + "in 21 days", js(HINT)
+assert (js(REL), js(FULL), js(HINT)) == ("in 21 days", spelled(want), ""), (js(REL), js(FULL), js(HINT))
 typed(ADD_DATE, "nov 31")
 assert js(HINT) == "November has only 30 days.", js(HINT)
+assert js(REL) == ""
 assert js("document.querySelector('.add .df-box').classList.contains('bad')")
 typed(ADD_DATE, "in 3 weeks")
 click(".add-btn")
@@ -242,19 +246,24 @@ mouse(ADD_DATE)
 assert js(CAL_OPEN), "clicking in the date box opens the calendar too"
 assert js("document.activeElement.matches('.add .df-box input')"), "and you can still type"
 assert js("document.querySelector('.add .cal').getBoundingClientRect().top"
-          " >= document.querySelector('.add .df-hint').getBoundingClientRect().bottom"), "the hint stays in view"
+          " >= document.querySelector('.add .df-box').getBoundingClientRect().bottom"), "it opens under the box"
 typed(ADD_DATE, "dec 25 2027")
 assert js("document.querySelector('.add .cal-title').textContent") == "December 2027", "the calendar follows typing"
 assert js("document.querySelector('.add .cal-day.picked').textContent") == "25"
 mouse(".add > input")
 assert not js(CAL_OPEN), "clicking elsewhere closes it"
 typed(ADD_DATE, "")
+key("Tab")
+assert js(CAL_OPEN), "tabbing into the date box opens it"
+assert js("document.activeElement.matches('.add .df-box input')")
+key("Escape")
+assert not js(CAL_OPEN) and d.isVisible(), "Esc closes it, not the window"
 
 mouse(".add .df-cal")
 mouse(".add .cal .chip")  # 1 week
 want = TODAY + timedelta(days=7)
 assert not js(CAL_OPEN), "picking closes it"
-assert js(HINT).endswith("in 7 days"), js(HINT)
+assert js(REL) == "in 7 days", js(REL)
 typed(".add > input", "Shelf")
 mouse(".add-btn")
 assert wait_for("document.querySelectorAll('.exam').length === 3")
@@ -270,12 +279,13 @@ assert wait_for("document.activeElement.classList.contains('cal-grid')"), "Down 
 key("PageDown")
 key("Right")
 key("Enter")
-assert not js("!!document.querySelector('.cal')")
+assert not js("!!document.querySelector('.cal')"), "picking closes it"
 assert js("document.activeElement.matches('.add .df-box input')"), "focus goes back to the field"
+assert not js(CAL_OPEN), "without opening it again"
 y, m = divmod(TODAY.month, 12)
 y, m = TODAY.year + y, m + 1
 picked = date(y, m, min(TODAY.day, monthrange(y, m)[1])) + timedelta(days=1)  # a month on, a day on
-assert js(HINT).startswith(picked.strftime("%A, %B ") + str(picked.day)), (js(HINT), picked)
+assert js(FULL) == spelled(picked), (js(FULL), picked)
 key("Down")
 assert wait_for("!!document.querySelector('.cal')")
 key("Escape")

@@ -99,7 +99,7 @@ export function App() {
           ref={nameInput}
           className={`text${tried && !name.trim() ? " bad" : ""}`}
           aria-label="Exam name"
-          placeholder="Exam name, like USMLE Step 1"
+          placeholder="Exam name"
           value={name}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && add()}

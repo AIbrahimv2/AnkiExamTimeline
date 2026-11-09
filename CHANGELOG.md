@@ -10,11 +10,11 @@ All notable changes to this project are documented here. The format is based on
 - The editor window is redesigned. Exams show with their countdown, upcoming
   first, with past exams folded away underneath.
 - A new date field: type the date the way you'd say it ("Nov 20", "11/20",
-  "next friday", "in 3 weeks") and it spells out the date it understood and
-  how far away it is, or tells you what's wrong ("November has only 30 days").
-  Or pick it from a new calendar that marks the days you already have exams
-  on, has quick picks (1 week, 2 weeks, 1 month, 3 months) and works from the
-  keyboard.
+  "next friday", "in 3 weeks") and the calendar, which opens with the field,
+  shows it as you type, while the field says how far away it is or what's
+  wrong ("November has only 30 days"). Or pick it in the calendar, which
+  marks the days you already have exams on, has quick picks (1 week, 2 weeks,
+  1 month, 3 months) and works from the keyboard.
 
 ### Added
 

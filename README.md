@@ -14,9 +14,10 @@ horizontal countdown timeline. Each exam appears as a card with a large
 - **Separate editor window** for adding, editing and removing exams — the
   widget itself stays read-only.
 - **Type dates the way you'd say them**: "Nov 20", "11/20", "next friday",
-  "in 3 weeks". The field spells out the date it understood and how far away it
-  is, so a typo can't slip through. Or pick it from the calendar, which marks
-  the days you already have exams on and has quick picks (1 week, 1 month, …).
+  "in 3 weeks". The calendar opens as you start and shows the date as you type
+  it, and the box says how far away it is, so a typo can't slip through. Or pick
+  it from the calendar, which marks the days you already have exams on and has
+  quick picks (1 week, 1 month, …).
 - Removed an exam by mistake? **Undo** puts it back.
 - Exams **persist** between sessions and past exams are hidden from the widget
   automatically.
@@ -28,8 +29,8 @@ The timeline appears on the deck and deck-overview screens. To manage exams, ope
 and a date, and press **Enter** or click **Add exam**. Hover over an exam to edit
 it (pencil) or remove it (**×**). Changes appear on the deck screen immediately.
 
-Clicking in the date field opens the calendar, which follows what you type; **↓**
-moves into it. There, the arrow keys move a day or a week, **Page Up / Page Down** a month (with **Shift**, a year), **Enter** picks the
+The calendar opens when you click or tab into the date field and follows what you
+type; **↓** moves into it. There, the arrow keys move a day or a week, **Page Up / Page Down** a month (with **Shift**, a year), **Enter** picks the
 day and **Esc** closes it.
 
 ## Installation
