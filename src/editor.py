@@ -20,7 +20,7 @@ from aqt.webview import AnkiWebView
 from .bridge import Bridge
 from .exams import ConfigStore
 
-GEOM_KEY = "exam_timeline_web"
+GEOM_KEY = "exam_timeline_editor"
 WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
 
@@ -52,8 +52,9 @@ class EditorDialog(QDialog):
         self.setMinimumSize(380, 420)
         # No bigger than the page needs: its column stops at 676px wide, and a
         # long list scrolls. Also caps a saved size and the green zoom button.
-        self.setMaximumSize(680, 900)
-        self.resize(560, 640)
+        self.setMaximumSize(680, 720)
+        # Tall enough for the add form's open calendar and a few exams.
+        self.resize(560, 500)
         restoreGeom(self, GEOM_KEY)
 
         self.bridge = Bridge(ConfigStore(__name__), on_change=refresh_widget)

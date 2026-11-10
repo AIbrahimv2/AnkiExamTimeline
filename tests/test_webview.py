@@ -402,9 +402,10 @@ assert any(e["name"] == "Old quiz" for e in exams())
 print("past dates show under Past")
 
 # --- the window stays a sensible size --------------------------------------------------
+assert (d.width(), d.height()) == (560, 500), ("opens short", d.width(), d.height())
 d.resize(3000, 3000)
 settle()
-assert (d.width(), d.height()) == (680, 900), (d.width(), d.height())
+assert (d.width(), d.height()) == (680, 720), (d.width(), d.height())
 d.resize(100, 100)
 settle()
 assert (d.width(), d.height()) == (380, 420), (d.width(), d.height())
