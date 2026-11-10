@@ -95,8 +95,13 @@ function fullYear(y: string): number {
  * "2026-11-20", "Fri, Nov 20, 2026", "today", "tomorrow", "in 3 weeks",
  * "+10", "2 months", "next friday", "20th". Null if it isn't a date.
  */
+/** Lower case, single spaces, and no separator left trailing ("10/12/" is 10/12). */
+function tidy(text: string): string {
+  return text.trim().toLowerCase().replace(/,/g, " ").replace(/\s+/g, " ").replace(/[\s/.-]+$/, "");
+}
+
 export function parseLoose(text: string, today: Date): Date | null {
-  let s = text.trim().toLowerCase().replace(/,/g, " ").replace(/\s+/g, " ");
+  let s = tidy(text);
   if (!s) return null;
   if (s === "today" || s === "now") return today;
   if (["tomorrow", "tmr", "tmrw", "tom"].includes(s)) return addDays(today, 1);
@@ -155,27 +160,53 @@ export function parseLoose(text: string, today: Date): Date | null {
   return null;
 }
 
-/**
- * Why a date that didn't parse can't be read, when there's something more
- * useful to say than "can't read it": "November has only 30 days."
- */
-export function whyNot(text: string): string | null {
-  const s = text.trim().toLowerCase().replace(/,/g, " ").replace(/\s+/g, " ");
-  let month = -1;
-  let day = 0;
-  let m = /(?:^| )([a-z]+\.?) (\d{1,2})(?:st|nd|rd|th)?(?: \d{4})?$/.exec(s);
-  if (m) [month, day] = [monthIndex(m[1]), +m[2]];
-  m = month < 0 ? /^(\d{1,2})(?:st|nd|rd|th)?(?: of)? ([a-z]+\.?)(?: \d{4})?$/.exec(s) : null;
-  if (m) [month, day] = [monthIndex(m[2]), +m[1]];
-  m = month < 0 ? /^(\d{1,2})[/.-](\d{1,2})(?:[/.-](?:\d{2}|\d{4}))?$/.exec(s) : null;
-  if (m) {
-    if (+m[1] > 12 && +m[2] <= 12) return "Put the month first, like 11/20.";
-    if (+m[1] < 1 || +m[1] > 12) return "There are only 12 months.";
-    [month, day] = [+m[1] - 1, +m[2]];
+const cap = (m: number, len?: number) => MONTHS[m][0].toUpperCase() + MONTHS[m].slice(1, len);
+
+/** What's wrong with a day of a month, if anything (the year, when given, counts). */
+function dayProblem(month: number, day: number, year: number | null): string | null {
+  if (day < 1) return "Days start at 1.";
+  if (month === 1 && day === 29 && (year === null || new Date(year, 1, 29).getMonth() !== 1)) {
+    return "February 29 only comes in leap years.";
   }
-  if (month < 0) return null;
-  const name = MONTHS[month][0].toUpperCase() + MONTHS[month].slice(1);
-  if (month === 1 && day === 29) return "February 29 only comes in leap years.";
-  const most = new Date(2024, month + 1, 0).getDate();
-  return day > most ? `${name} has only ${most} days.` : null;
+  const most = new Date(year ?? 2024, month + 1, 0).getDate();
+  return day > most ? `${cap(month)} has only ${most} days.` : null;
+}
+
+/**
+ * Why a date that didn't parse can't be read, in the terms the user typed it
+ * in: "November has only 30 days.", "Finish the year, like 10/12/2026.", or
+ * an example in the same style.
+ */
+export function explain(text: string, today: Date): string {
+  const s = tidy(text);
+  const year = today.getFullYear();
+
+  // Numbers: month/day/year.
+  let m = /^(\d{1,2})[/.-](\d{1,2})(?:[/.-](\d*))?$/.exec(s);
+  if (m) {
+    const [month, day, y] = [+m[1], +m[2], m[3]];
+    if (month > 12 && day <= 12) return `Put the month first: ${day}/${month}.`;
+    if (month < 1 || month > 12) return "There are only 12 months.";
+    const bad = dayProblem(month - 1, day, y?.length === 4 ? +y : null);
+    if (bad) return bad;
+    if (y) return `Finish the year, like ${month}/${day}/${year}.`;
+  }
+
+  // A month's name and a day, either way round.
+  m = /^(?:[a-z]+ )?([a-z]+)\.? (\d{1,2})(?:st|nd|rd|th)?(?: (\d+))?$/.exec(s); // a weekday may lead
+  let month = m ? monthIndex(m[1]) : -1;
+  let day = m ? +m[2] : 0;
+  let y = m?.[3];
+  if (month < 0) {
+    m = /^(\d{1,2})(?:st|nd|rd|th)?(?: of)? ([a-z]+)\.?(?: (\d+))?$/.exec(s);
+    if (m) [month, day, y] = [monthIndex(m[2]), +m[1], m[3]];
+  }
+  if (month >= 0) {
+    const bad = dayProblem(month, day, y?.length === 4 ? +y : null);
+    if (bad) return bad;
+    if (y) return `Finish the year, like ${cap(month, 3)} ${day} ${year}.`;
+  }
+
+  if (/^\d/.test(s)) return `Write it as month/day/year, like 10/12/${year}.`;
+  return "Try a date like Oct 12, next Friday or in 3 weeks.";
 }

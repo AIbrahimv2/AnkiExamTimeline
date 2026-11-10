@@ -212,8 +212,12 @@ print("opens with the exams")
 typed(ADD_DATE, "in 3 weeks")
 want = TODAY + timedelta(days=21)
 assert (js(REL), js(FULL), js(HINT)) == ("in 21 days", spelled(want), ""), (js(REL), js(FULL), js(HINT))
+typed(ADD_DATE, "10/12/2")
+assert (js(HINT), js(REL)) == ("", ""), "half a date isn't an error while typing"
+assert not js("document.querySelector('.add .df-box').classList.contains('bad')")
+assert wait_for(HINT + " === 'Finish the year, like 10/12/%d.'" % TODAY.year, 4), "but says what's missing once typing pauses"
 typed(ADD_DATE, "nov 31")
-assert js(HINT) == "November has only 30 days.", js(HINT)
+assert wait_for(HINT + " === 'November has only 30 days.'", 4), js(HINT)
 assert js(REL) == ""
 assert js("document.querySelector('.add .df-box').classList.contains('bad')")
 typed(ADD_DATE, "in 3 weeks")

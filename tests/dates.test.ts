@@ -2,7 +2,7 @@
 //   node --test tests/dates.test.ts
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { addMonths, dayDiff, fromISO, parseLoose, relative, toISO, whyNot } from "../web/src/dates.ts";
+import { addMonths, dayDiff, explain, fromISO, parseLoose, relative, toISO } from "../web/src/dates.ts";
 
 // Monday, November 9, 2026.
 const TODAY = new Date(2026, 10, 9);
@@ -49,25 +49,35 @@ test("numbers", () => {
   assert.equal(read("11/20"), "2026-11-20");
   assert.equal(read("11/20/27"), "2027-11-20");
   assert.equal(read("1/5/2027"), "2027-01-05");
+  assert.equal(read("10/12/"), "2027-10-12", "a separator left trailing mid-typing is fine");
+  assert.equal(read("10/12/2026/"), "2026-10-12");
+  assert.equal(read("oct 12,"), "2027-10-12");
   assert.equal(read("20"), "2026-11-20", "a day of the month alone is the next one");
   assert.equal(read("3"), "2026-12-03");
   assert.equal(read("9"), "2026-11-09");
 });
 
 test("what isn't a date", () => {
-  for (const s of ["", "   ", "soon", "nov 31", "feb 30", "13/20", "in weeks", "mayday", "32"]) {
+  for (const s of ["", "   ", "soon", "nov 31", "feb 30", "13/20", "in weeks", "mayday", "32", "10/12/2", "10/12/202"]) {
     assert.equal(read(s), null, s);
   }
 });
 
-test("why a date can't be read", () => {
-  assert.equal(whyNot("nov 31"), "November has only 30 days.");
-  assert.equal(whyNot("31 april"), "April has only 30 days.");
-  assert.equal(whyNot("2/30"), "February has only 29 days.");
-  assert.equal(whyNot("feb 29 2027"), "February 29 only comes in leap years.");
-  assert.equal(whyNot("20/11"), "Put the month first, like 11/20.");
-  assert.equal(whyNot("13/13"), "There are only 12 months.");
-  assert.equal(whyNot("soon"), null, "nothing better to say than the usual hint");
+test("why a date can't be read, in the style it was typed", () => {
+  const why = (t: string) => explain(t, TODAY);
+  assert.equal(why("nov 31"), "November has only 30 days.");
+  assert.equal(why("fri nov 31"), "November has only 30 days.");
+  assert.equal(why("31 april"), "April has only 30 days.");
+  assert.equal(why("2/30"), "February has only 29 days.");
+  assert.equal(why("2/29/2027"), "February 29 only comes in leap years.");
+  assert.equal(why("feb 29 2027"), "February 29 only comes in leap years.");
+  assert.equal(why("20/11"), "Put the month first: 11/20.");
+  assert.equal(why("13/13"), "There are only 12 months.");
+  assert.equal(why("10/12/2"), "Finish the year, like 10/12/2026.");
+  assert.equal(why("oct 12 202"), "Finish the year, like Oct 12 2026.");
+  assert.equal(why("10/12/x"), "Write it as month/day/year, like 10/12/2026.");
+  assert.equal(why("32"), "Write it as month/day/year, like 10/12/2026.");
+  assert.equal(why("soon"), "Try a date like Oct 12, next Friday or in 3 weeks.");
 });
 
 test("helpers", () => {

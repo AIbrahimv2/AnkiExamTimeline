@@ -1,6 +1,6 @@
 import { CalendarDays } from "lucide-react";
 import { type KeyboardEvent, type RefObject, useEffect, useId, useMemo, useRef, useState } from "react";
-import { dayDiff, formatLong, formatShort, fromISO, parseLoose, relative, toISO, whyNot } from "../dates";
+import { dayDiff, explain, formatLong, formatShort, fromISO, parseLoose, relative, toISO } from "../dates";
 import { Calendar } from "./Calendar";
 
 /**
@@ -70,6 +70,15 @@ export function DateField(props: {
 
   const parsed = text.trim() ? parseLoose(text, today) : null;
 
+  // A date half typed ("10/12/2") isn't wrong yet: say so only once typing
+  // pauses, or on leaving the box or Enter.
+  const [settled, setSettled] = useState(true);
+  useEffect(() => {
+    setSettled(false);
+    const t = setTimeout(() => setSettled(true), 1000);
+    return () => clearTimeout(t);
+  }, [text]);
+
   const type = (t: string) => {
     setText(t);
     const d = t.trim() ? parseLoose(t, today) : null;
@@ -96,6 +105,7 @@ export function DateField(props: {
     } else if (e.key === "Enter") {
       e.preventDefault();
       if (parsed) setText(formatShort(parsed));
+      setSettled(true);
       setOpen(false);
       props.onEnter?.();
     } else if (e.key === "Escape" && open) {
@@ -105,7 +115,7 @@ export function DateField(props: {
     }
   };
 
-  const bad = !!text.trim() && !parsed;
+  const bad = !!text.trim() && !parsed && settled;
   const missing = !text.trim() && props.showError;
   return (
     <div
@@ -140,7 +150,10 @@ export function DateField(props: {
           autoComplete="off"
           onFocus={() => !quiet.current && show(false)}
           onClick={() => show(false)}
-          onBlur={() => parsed && setText(formatShort(parsed))}
+          onBlur={() => {
+            if (parsed) setText(formatShort(parsed));
+            setSettled(true);
+          }}
           onChange={(e) => type(e.target.value)}
           onKeyDown={onKey}
         />
@@ -157,7 +170,7 @@ export function DateField(props: {
       </div>
       {(bad || missing) && (
         <div id={noteId} className="df-hint" aria-live="polite">
-          {bad ? whyNot(text) ?? "Can't read that date. Try “Nov 20” or “in 3 weeks”." : "Pick a date for the exam."}
+          {bad ? explain(text, today) : "Pick a date for the exam."}
         </div>
       )}
       {open && (
