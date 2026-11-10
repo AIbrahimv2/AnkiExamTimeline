@@ -1,6 +1,7 @@
 import { ChevronRight, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { call } from "./bridge";
+import { ConfirmRemove } from "./components/ConfirmRemove";
 import { DateField } from "./components/DateField";
 import { ExamRow } from "./components/ExamRow";
 import { dayDiff, fromISO } from "./dates";
@@ -17,6 +18,8 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<Toast | null>(null);
   const [showPast, setShowPast] = useState(false);
+  // The exam waiting on "Remove it?", and what had focus before asking.
+  const [confirming, setConfirming] = useState<{ exam: Exam; from: Element | null } | null>(null);
 
   const [name, setName] = useState("");
   const [date, setDate] = useState<string | null>(null);
@@ -85,9 +88,7 @@ export function App() {
       today={state.today}
       marks={marks}
       onSave={async (exam, n, d) => !!(await run("update", { id: exam.id, name: n, date: d }))}
-      onRemove={async (exam) => {
-        if (await run("remove", { id: exam.id })) say(`Removed ${exam.name}`, exam);
-      }}
+      onRemove={(exam) => setConfirming({ exam, from: document.activeElement })}
     />
   );
 
@@ -134,6 +135,22 @@ export function App() {
           </button>
           {showPast && past.map(row)}
         </section>
+      )}
+
+      {confirming && (
+        <ConfirmRemove
+          exam={confirming.exam}
+          onCancel={() => {
+            setConfirming(null);
+            (confirming.from as HTMLElement | null)?.focus?.();
+          }}
+          onConfirm={async () => {
+            const { exam } = confirming;
+            setConfirming(null);
+            nameInput.current?.focus();
+            if (await run("remove", { id: exam.id })) say(`Removed ${exam.name}`, exam);
+          }}
+        />
       )}
 
       {toast && (

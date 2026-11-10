@@ -186,10 +186,11 @@ def key(name):
     settle(10)
 
 
-def mouse(sel):
-    """A real click, through Qt, on the middle of an element."""
+def mouse(sel, corner=False):
+    """A real click, through Qt, on the middle of an element (or near its top left corner)."""
     x, y = json.loads(js("JSON.stringify((() => { const r = document.querySelector(%s).getBoundingClientRect();"
-                         " return [r.x + r.width / 2, r.y + r.height / 2]; })())" % json.dumps(sel)))
+                         " return %s; })())" % (json.dumps(sel), "[r.x + 4, r.y + 4]" if corner
+                                                 else "[r.x + r.width / 2, r.y + r.height / 2]")))
     at = QPointF(x, y)
     left = Qt.MouseButton.LeftButton
     for kind, held in ((QEvent.Type.MouseButtonPress, left), (QEvent.Type.MouseButtonRelease, Qt.MouseButton.NoButton)):
@@ -352,8 +353,27 @@ key("Escape")
 assert not js("!!document.querySelector('.exam.editing')"), "Esc cancels editing"
 assert d.isVisible()
 
+MODAL = "!!document.querySelector('.modal')"
 click('[aria-label="Remove Shelf"]')
-assert wait_for("document.querySelectorAll('.exam').length === 2")
+assert wait_for(MODAL), "removing asks first"
+assert js("document.querySelector('.modal h3').textContent") == "Remove Shelf?"
+assert js("document.activeElement.textContent") == "Remove", "with Remove ready for Enter"
+assert js(NATIVE) == 0
+key("Escape")
+assert not js(MODAL) and d.isVisible(), "Esc keeps the exam, and the window"
+mouse('[aria-label="Remove Shelf"]')
+assert wait_for(MODAL)
+mouse(".modal-backdrop", corner=True)
+assert not js(MODAL), "so does a click outside"
+mouse('[aria-label="Remove Shelf"]')
+mouse(".modal .btn:not(.danger)")
+assert not js(MODAL), "and Cancel"
+assert any(e["name"] == "Shelf" for e in exams()), "still there"
+click('[aria-label="Remove Shelf"]')
+assert wait_for(MODAL)
+key("Enter")
+assert wait_for("document.querySelectorAll('.exam').length === 2"), "Enter removes it"
+assert not js(MODAL)
 assert not any(e["name"] == "Shelf" for e in exams())
 click(".toast .btn")
 assert wait_for("document.querySelectorAll('.exam').length === 3"), "Undo puts it back"
