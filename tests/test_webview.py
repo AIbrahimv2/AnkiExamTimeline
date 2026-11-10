@@ -259,16 +259,58 @@ assert js("document.activeElement.matches('.add .df-box input')")
 key("Escape")
 assert not js(CAL_OPEN) and d.isVisible(), "Esc closes it, not the window"
 
-mouse(".add .df-cal")
-mouse(".add .cal .chip")  # 1 week
-want = TODAY + timedelta(days=7)
+mouse(ADD_DATE)
+assert not js("document.querySelector('.add .cal .chip, .add .cal-quick')"), "no quick picks"
+mouse('.add .cal [aria-label="Next month"]')
+y, m = divmod(TODAY.month, 12)
+want = date(TODAY.year + y, m + 1, 15)  # the 15th of next month
+mouse('.add .cal-day[aria-label^=%s]' % json.dumps(spelled(want)))
 assert not js(CAL_OPEN), "picking closes it"
-assert js(REL) == "in 7 days", js(REL)
+assert js(FULL) == spelled(want), js(FULL)
+
 typed(".add > input", "Shelf")
 mouse(".add-btn")
 assert wait_for("document.querySelectorAll('.exam').length === 3")
 assert any(e["name"] == "Shelf" and e["date"] == want.isoformat() for e in exams())
 print("picking from the calendar works")
+
+# --- jumping months and years ---------------------------------------------------------
+TITLE = "document.querySelector('.add .cal-title').textContent"
+MODE = "document.querySelector('.add .cal-grid').classList[1]"
+far = TODAY.year + 2
+mouse(ADD_DATE)
+mouse(".add .cal button.cal-title")
+assert (js(MODE), js(TITLE)) == ("months", str(TODAY.year)), "the title shows the year's months"
+assert js("document.querySelectorAll('.add .cal-grid .cal-day').length") == 12
+mouse(".add .cal button.cal-title")
+assert js(MODE) == "years" and js("document.querySelectorAll('.add .cal-grid .cal-day').length") == 12, "then years"
+mouse('.add .cal-grid [aria-label="%d"]' % far)
+assert (js(MODE), js(TITLE)) == ("months", str(far)), "picking a year shows its months"
+mouse('.add .cal [aria-label="Next year"]')
+assert js(TITLE) == str(far + 1), "the arrows go a year at a time there"
+mouse('.add .cal [aria-label="Previous year"]')
+mouse('.add .cal-grid [aria-label="March %d"]' % far)
+assert (js(MODE), js(TITLE)) == ("days", f"March {far}"), "picking a month shows its days"
+assert js("document.activeElement.matches('.add .df-box input')"), "and the box keeps the keys throughout"
+mouse('.add .cal-day[aria-label^=%s]' % json.dumps(spelled(date(far, 3, 10))))
+assert js(FULL) == spelled(date(far, 3, 10)), js(FULL)
+assert not js(CAL_OPEN)
+
+# With the keyboard: arrows and Enter in the months, Esc back up a level.
+key("Down")
+assert js("document.activeElement.classList.contains('cal-grid')")
+mouse(".add .cal button.cal-title")
+assert js(MODE) == "months" and js("document.activeElement.classList.contains('cal-grid')")
+key("Right")
+key("Enter")
+assert (js(MODE), js(TITLE)) == ("days", f"April {far}"), js(TITLE)
+mouse(".add .cal button.cal-title")
+key("Escape")
+assert js(MODE) == "days" and js(CAL_OPEN), "Esc goes back to the days"
+key("Escape")
+assert not js(CAL_OPEN) and d.isVisible(), "and then closes"
+typed(ADD_DATE, "")
+print("jumping months and years works")
 
 # --- and with the keyboard ------------------------------------------------------------
 js(f"document.querySelector('{ADD_DATE}').focus(); 1")

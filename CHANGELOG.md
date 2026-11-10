@@ -13,8 +13,8 @@ All notable changes to this project are documented here. The format is based on
   "next friday", "in 3 weeks") and the calendar, which opens with the field,
   shows it as you type, while the field says how far away it is or what's
   wrong ("November has only 30 days"). Or pick it in the calendar, which
-  marks the days you already have exams on, has quick picks (1 week, 2 weeks,
-  1 month, 3 months) and works from the keyboard.
+  marks the days you already have exams on, jumps to any month or year from
+  its title and works from the keyboard.
 
 ### Added
 

@@ -158,16 +158,6 @@ h2 {
 #root .icon-btn:hover { background: var(--hover); color: var(--text); }
 #root .icon-btn.bad:hover { background: var(--danger-soft); color: var(--danger); }
 
-#root .chip {
-  height: 26px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line-strong);
-  color: var(--text-2);
-  font-size: 12px;
-  font-weight: 500;
-}
-#root .chip:hover { background: var(--hover); color: var(--text); }
 
 /* --- add form -------------------------------------------------------------- */
 
@@ -255,6 +245,20 @@ h2 {
 @keyframes pop { from { opacity: 0; transform: translateY(-4px) scale(0.98); } }
 .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
 .cal-title { font-weight: 650; font-size: 14px; }
+/* The title switches to months, then years. */
+#root button.cal-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 8px 0 10px;
+  border-radius: var(--radius-sm);
+  font-weight: 650;
+  font-size: 14px;
+}
+#root button.cal-title svg { color: var(--text-3); }
+#root button.cal-title:hover { background: var(--hover); }
+#root button.cal-title:hover svg { color: var(--text); }
 .cal-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -278,6 +282,9 @@ h2 {
   font-variant-numeric: tabular-nums;
   font-size: 13px;
 }
+/* Months and years: three to a row, filling the same space as the days. */
+.cal-grid.months, .cal-grid.years { grid-template-columns: repeat(3, 1fr); gap: 4px; }
+#root .cal-grid.months .cal-day, #root .cal-grid.years .cal-day { height: 57px; font-size: 14px; }
 #root .cal-day:hover { background: var(--hover); }
 #root .cal-day.out { color: var(--text-3); }
 #root .cal-day.past { color: var(--text-3); }
@@ -297,8 +304,6 @@ h2 {
   background: var(--accent);
 }
 .cal-day.picked .cal-dot { background: #fff; }
-.cal-quick { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
-#root .cal-quick .chip { padding: 0 4px; white-space: nowrap; }
 
 /* --- exam list --------------------------------------------------------------- */
 
