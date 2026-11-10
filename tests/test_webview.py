@@ -232,7 +232,10 @@ click(".add-btn")
 assert wait_for("document.querySelectorAll('.exam').length === 2"), "added"
 assert any(e["name"] == "USMLE Step 1" and e["date"] == want.isoformat() for e in exams()), exams()
 assert REFRESHES, "the deck screen redraws"
-assert js("document.querySelector('.toast').textContent") == "Added USMLE Step 1"
+TOAST = "document.querySelector('.toast-title')?.textContent"
+TOAST_DETAIL = "document.querySelector('.toast-detail')?.textContent"
+assert (js(TOAST), js(TOAST_DETAIL)) == ("Added USMLE Step 1", spelled(want) + "in 21 days"), "the toast says what and when"
+assert js("document.querySelector('.exam.flash .exam-name').textContent") == "USMLE Step 1", "and the new row lights up"
 assert js("document.querySelector('.add .field input').value") == "" and js(f"document.querySelector('{ADD_DATE}').value") == ""
 print("typing a date works")
 
@@ -350,6 +353,11 @@ typed(".exam.editing .df-box input", "in 5 days")
 click(".exam.editing .btn.primary")
 assert wait_for("!document.querySelector('.exam.editing')"), "saved"
 assert next(e for e in exams() if e["id"] == 1)["date"] == iso(5)
+assert js(TOAST) == "Saved B&B NBME"
+click(".toast .toast-undo")
+assert wait_for(TOAST + " === 'Undone'"), "a save can be undone"
+assert next(e for e in exams() if e["id"] == 1)["date"] == iso(4)
+assert js(TOAST_DETAIL) == "B&B NBME is as it was."
 click('[aria-label="Edit B&B NBME"]')
 key("Escape")
 assert not js("!!document.querySelector('.exam.editing')"), "Esc cancels editing"
@@ -377,9 +385,13 @@ key("Enter")
 assert wait_for("document.querySelectorAll('.exam').length === 2"), "Enter removes it"
 assert not js(MODAL)
 assert not any(e["name"] == "Shelf" for e in exams())
-click(".toast .btn")
+assert (js(TOAST), js("!!document.querySelector('.toast.removed .toast-undo')")) == ("Removed Shelf", True)
+click(".toast .toast-undo")
 assert wait_for("document.querySelectorAll('.exam').length === 3"), "Undo puts it back"
 assert any(e["name"] == "Shelf" for e in exams())
+assert (js(TOAST), js(TOAST_DETAIL)) == ("Undone", "Shelf is back.")
+click(".toast-close")
+assert wait_for("!document.querySelector('.toast')"), "the toast can be dismissed"
 print("edit, remove and undo work")
 
 # --- reopening reloads -------------------------------------------------------------------
@@ -389,6 +401,20 @@ editor.open_editor()
 assert editor._dialog is d, "one window"
 assert wait_for("document.querySelectorAll('.exam').length === 4"), "reopening shows changes made elsewhere"
 print("reopening reloads")
+
+# --- a past date goes under Past, and says so ---------------------------------------------
+assert not js("document.querySelector('.past-toggle').getAttribute('aria-expanded') === 'true'")
+typed(".add .field input", "Old quiz")
+typed(ADD_DATE, (TODAY - timedelta(days=40)).strftime("%m/%d/%Y"))
+mouse(".add-btn")
+assert wait_for(TOAST + " === 'Added Old quiz'")
+assert js(TOAST_DETAIL) == "The date has passed, so it's under Past."
+assert js("document.querySelector('.past-toggle').getAttribute('aria-expanded')") == "true", "Past opens"
+assert js("document.querySelector('.exam.flash .exam-name').textContent") == "Old quiz"
+click(".toast .toast-undo")
+assert wait_for(TOAST_DETAIL + " === 'Old quiz is off the list again.'"), "adding can be undone"
+assert not any(e["name"] == "Old quiz" for e in exams())
+print("toasts work")
 
 # --- the window stays a sensible size --------------------------------------------------
 d.resize(3000, 3000)

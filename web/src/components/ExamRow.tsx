@@ -1,5 +1,5 @@
 import { Check, Pencil, X } from "lucide-react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { dayDiff, formatLong, fromISO } from "../dates";
 import type { Exam } from "../types";
 import { DateField } from "./DateField";
@@ -16,6 +16,8 @@ export function ExamRow(props: {
   exam: Exam;
   today: string;
   marks: Map<string, string[]>;
+  /** Just added, saved or put back: light up, and come into view. */
+  flash?: boolean;
   onSave: (exam: Exam, name: string, date: string) => Promise<boolean>;
   onRemove: (exam: Exam) => void;
 }) {
@@ -25,6 +27,11 @@ export function ExamRow(props: {
   const [date, setDate] = useState<string | null>(exam.date);
   const [tried, setTried] = useState(false);
   const nameInput = useRef<HTMLInputElement>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (props.flash) rowRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [props.flash]);
 
   const when = fromISO(exam.date);
   const days = when ? dayDiff(fromISO(props.today) ?? new Date(), when) : 0;
@@ -76,7 +83,7 @@ export function ExamRow(props: {
   }
 
   return (
-    <div className={`exam${days < 0 ? " past" : ""}${days === 0 ? " is-today" : ""}`}>
+    <div ref={rowRef} className={`exam${days < 0 ? " past" : ""}${days === 0 ? " is-today" : ""}${props.flash ? " flash" : ""}`}>
       <div className="exam-count" aria-label={`${big} ${unit}`}>
         <span className="exam-big">{big}</span>
         <span className="exam-unit">{unit}</span>
