@@ -80,19 +80,12 @@ class BridgeTest(unittest.TestCase):
                          "Same id as text", "ids match as text, as the page may send either")
         self.assertIn("error", self.call("update", id=99, name="A", date="2026-11-12"))
 
-    def test_remove_and_undo(self):
-        r = self.call("remove", id=1)
-        self.assertEqual(r["exams"], [])
-        self.assertEqual(r["removed"], {"id": 1, "name": "B&B Exam 3", "date": "2026-11-10"})
-        r = self.call("restore", exam=r["removed"])
-        self.assertEqual(r["exams"], [{"id": 1, "name": "B&B Exam 3", "date": "2026-11-10"}])
-        self.assertEqual(self.call("restore", exam=r["exams"][0])["exams"], r["exams"], "a second undo adds nothing")
-        self.assertIn("error", self.call("restore"))
+    def test_remove(self):
+        self.assertEqual(self.call("remove", id="1")["exams"], [], "ids match as text")
+        self.assertEqual(self.changes, 1)
 
     def test_remove_missing_is_harmless(self):
-        r = self.call("remove", id=99)
-        self.assertIsNone(r["removed"])
-        self.assertEqual(len(r["exams"]), 1)
+        self.assertEqual(len(self.call("remove", id=99)["exams"]), 1)
 
     def test_odd_config(self):
         """Hand-edited config: entries that aren't exams are skipped, not fatal."""

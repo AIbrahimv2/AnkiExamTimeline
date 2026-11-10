@@ -17,7 +17,7 @@ horizontal countdown timeline. Each exam appears as a card with a large
   "in 3 weeks". The calendar opens as you start and shows the date as you type
   it, and the box says how far away it is, so a typo can't slip through. Or pick
   it from the calendar, which marks the days you already have exams on.
-- Removed an exam by mistake? **Undo** puts it back.
+- Removing an exam **asks first**, so a stray click can't lose one.
 - Exams **persist** between sessions and past exams are hidden from the widget
   automatically.
 

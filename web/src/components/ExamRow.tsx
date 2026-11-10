@@ -16,7 +16,7 @@ export function ExamRow(props: {
   exam: Exam;
   today: string;
   marks: Map<string, string[]>;
-  /** Just added, saved or put back: light up, and come into view. */
+  /** Just added or saved: light up, and come into view. */
   flash?: boolean;
   onSave: (exam: Exam, name: string, date: string) => Promise<boolean>;
   onRemove: (exam: Exam) => void;

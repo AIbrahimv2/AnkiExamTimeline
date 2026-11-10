@@ -10,5 +10,4 @@ export interface State {
   /** Anki's today, yyyy-mm-dd, so the page and the deck screen count alike. */
   today: string;
   added?: number;
-  removed?: Exam | null;
 }

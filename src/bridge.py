@@ -99,19 +99,5 @@ class Bridge:
 
     def cmd_remove(self, msg: dict) -> dict:
         rid = str(msg.get("id"))
-        exams = self._exams()
-        removed = next((e for e in exams if str(e.get("id")) == rid), None)
-        self._save([e for e in exams if str(e.get("id")) != rid])
-        return self._state(removed=removed)
-
-    def cmd_restore(self, msg: dict) -> dict:
-        """Put back an exam just removed (the toast's Undo)."""
-        exam = msg.get("exam")
-        if not isinstance(exam, dict):
-            raise ValueError("Nothing to put back.")
-        exams = self._exams()
-        if any(str(e.get("id")) == str(exam.get("id")) for e in exams):
-            return self._state()
-        restored = {"id": exam.get("id") or self._new_id(exams), "name": self._name(exam), "date": self._date(exam)}
-        self._save(exams + [restored])
+        self._save([e for e in self._exams() if str(e.get("id")) != rid])
         return self._state()

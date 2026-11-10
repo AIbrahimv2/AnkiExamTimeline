@@ -5,14 +5,12 @@ import { ConfirmRemove } from "./components/ConfirmRemove";
 import { DateField } from "./components/DateField";
 import { ExamRow } from "./components/ExamRow";
 import { NameField } from "./components/NameField";
-import { Toast, type ToastMessage } from "./components/Toast";
-import { dayDiff, formatLong, fromISO, relative } from "./dates";
+import { dayDiff, fromISO } from "./dates";
 import type { Exam, State } from "./types";
 
 export function App() {
   const [state, setState] = useState<State | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [toast, setToast] = useState<ToastMessage | null>(null);
   // The exam just added, saved or put back: lit up in the list for a moment.
   const [flash, setFlash] = useState<Exam["id"] | null>(null);
   const [showPast, setShowPast] = useState(false);
@@ -38,7 +36,6 @@ export function App() {
     return () => clearTimeout(t);
   }, [flash]);
 
-  const say = (msg: Omit<ToastMessage, "id">) => setToast({ ...msg, id: Date.now() });
   const run = async (cmd: string, args: Record<string, unknown>) => {
     try {
       const next = await call<State>(cmd, args);
@@ -58,17 +55,7 @@ export function App() {
     const next = await run("add", { name, date });
     if (!next) return;
     const exam = next.exams.find((e) => e.id === next.added);
-    if (exam) {
-      spotlight(exam);
-      say({
-        kind: "added",
-        title: `Added ${exam.name}`,
-        detail: describe(exam),
-        undo: async () => {
-          if (await run("remove", { id: exam.id })) undone(`${exam.name} is off the list again.`);
-        },
-      });
-    }
+    if (exam) spotlight(exam);
     setName("");
     setDate(null);
     setTried(false);
@@ -77,29 +64,15 @@ export function App() {
 
   const today = fromISO(state?.today) ?? new Date();
 
-  const daysTo = (exam: Exam) => dayDiff(today, fromISO(exam.date) ?? today);
-
-  /** Show an exam in the list: open Past if that's where it is, and light it up. */
+  /**
+   * Show an exam just added or saved: open Past if that's where it went, and
+   * light it up in the list. That's all the feedback a change needs.
+   */
   const spotlight = (exam: Exam) => {
-    if (daysTo(exam) < 0) setShowPast(true);
+    if (dayDiff(today, fromISO(exam.date) ?? today) < 0) setShowPast(true);
     setFlash(exam.id);
   };
 
-  /** Its date and how far away, or where it went if the date has passed. */
-  const describe = (exam: Exam) => {
-    const when = fromISO(exam.date);
-    if (!when) return exam.date;
-    const days = daysTo(exam);
-    if (days < 0) return "The date has passed, so it's under Past.";
-    return (
-      <>
-        <span>{formatLong(when)}</span>
-        <span className="toast-rel">{relative(days)}</span>
-      </>
-    );
-  };
-
-  const undone = (detail: string) => say({ kind: "undone", title: "Undone", detail });
   const { upcoming, past, marks } = useMemo(() => {
     const exams = state?.exams ?? [];
     const withDays = exams.map((e) => ({ e, days: dayDiff(today, fromISO(e.date) ?? today) }));
@@ -126,17 +99,6 @@ export function App() {
         const saved = next?.exams.find((x) => x.id === exam.id);
         if (!saved) return false;
         spotlight(saved);
-        say({
-          kind: "saved",
-          title: `Saved ${saved.name}`,
-          detail: describe(saved),
-          undo: async () => {
-            if (await run("update", { id: exam.id, name: exam.name, date: exam.date })) {
-              spotlight(exam);
-              undone(`${exam.name} is as it was.`);
-            }
-          },
-        });
         return true;
       }}
       onRemove={(exam) => setConfirming({ exam, from: document.activeElement })}
@@ -190,23 +152,11 @@ export function App() {
             const { exam } = confirming;
             setConfirming(null);
             nameInput.current?.focus();
-            if (!(await run("remove", { id: exam.id }))) return;
-            say({
-              kind: "removed",
-              title: `Removed ${exam.name}`,
-              detail: fromISO(exam.date) ? formatLong(fromISO(exam.date)!) : exam.date,
-              undo: async () => {
-                if (await run("restore", { exam })) {
-                  spotlight(exam);
-                  undone(`${exam.name} is back.`);
-                }
-              },
-            });
+            await run("remove", { id: exam.id });
           }}
         />
       )}
 
-      {toast && <Toast key={toast.id} toast={toast} onClose={() => setToast((cur) => (cur?.id === toast.id ? null : cur))} />}
     </div>
   );
 }

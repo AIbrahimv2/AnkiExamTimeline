@@ -19,7 +19,7 @@ All notable changes to this project are documented here. The format is based on
 ### Added
 
 - Edit an exam's name or date in place.
-- Undo after removing an exam.
+- Removing an exam asks first.
 
 ### Fixed
 
