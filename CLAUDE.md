@@ -17,5 +17,5 @@ This repo: `./build.sh` builds the editor's web UI (`web/` into `src/web/`)
 and then `dist/anki-exam-timeline.ankiaddon` from `src/`. `./tests/run.sh` runs
 the tests. Never use `<input type="date">`, `<select>` or other native-popup
 controls in the editor page: they crash Anki's web view on macOS.
-The listing text is in `dist/ankiweb-listing.txt`, which git ignores. Move it
-to `docs/ankiweb-listing.md` the next time you edit the listing.
+The AnkiWeb listing (title, tags, versions, description) is in
+`docs/ankiweb-listing.md`. Keep it matching what's live.
