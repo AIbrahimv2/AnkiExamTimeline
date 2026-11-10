@@ -169,7 +169,7 @@ export function DateField(props: {
         )}
       </div>
       {(bad || missing) && (
-        <div id={noteId} className="df-hint" aria-live="polite">
+        <div id={noteId} className="df-hint field-error" aria-live="polite">
           {bad ? explain(text, today) : "Pick a date for the exam."}
         </div>
       )}

@@ -223,15 +223,17 @@ assert js(REL) == ""
 assert js("document.querySelector('.add .df-box').classList.contains('bad')")
 typed(ADD_DATE, "in 3 weeks")
 click(".add-btn")
-assert js("document.querySelector('.form-error').textContent") == "Give the exam a name.", "a name is needed"
+assert js("document.querySelector('.add .name-error').textContent") == "Give the exam a name.", "a name is needed"
+assert js("document.querySelector('.add .name-error').getBoundingClientRect().bottom"
+          " < document.querySelector('.add .df-box').getBoundingClientRect().top"), "said under the name, not the date"
 assert len(exams()) == 2, "nothing added yet"
-typed(".add > input", "USMLE Step 1")
+typed(".add .field input", "USMLE Step 1")
 click(".add-btn")
 assert wait_for("document.querySelectorAll('.exam').length === 2"), "added"
 assert any(e["name"] == "USMLE Step 1" and e["date"] == want.isoformat() for e in exams()), exams()
 assert REFRESHES, "the deck screen redraws"
 assert js("document.querySelector('.toast').textContent") == "Added USMLE Step 1"
-assert js("document.querySelector('.add > input').value") == "" and js(f"document.querySelector('{ADD_DATE}').value") == ""
+assert js("document.querySelector('.add .field input').value") == "" and js(f"document.querySelector('{ADD_DATE}').value") == ""
 print("typing a date works")
 
 # --- picking one with the mouse ------------------------------------------------------
@@ -255,7 +257,7 @@ assert js("document.querySelector('.add .cal').getBoundingClientRect().top"
 typed(ADD_DATE, "dec 25 2027")
 assert js("document.querySelector('.add .cal-title').textContent") == "December 2027", "the calendar follows typing"
 assert js("document.querySelector('.add .cal-day.picked').textContent") == "25"
-mouse(".add > input")
+mouse(".add .field input")
 assert not js(CAL_OPEN), "clicking elsewhere closes it"
 typed(ADD_DATE, "")
 key("Tab")
@@ -273,7 +275,7 @@ mouse('.add .cal-day[aria-label^=%s]' % json.dumps(spelled(want)))
 assert not js(CAL_OPEN), "picking closes it"
 assert js(FULL) == spelled(want), js(FULL)
 
-typed(".add > input", "Shelf")
+typed(".add .field input", "Shelf")
 mouse(".add-btn")
 assert wait_for("document.querySelectorAll('.exam').length === 3")
 assert any(e["name"] == "Shelf" and e["date"] == want.isoformat() for e in exams())

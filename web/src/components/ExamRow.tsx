@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { dayDiff, formatLong, fromISO } from "../dates";
 import type { Exam } from "../types";
 import { DateField } from "./DateField";
+import { NameField } from "./NameField";
 
 /** The big number on the left and what it counts. */
 function countdown(days: number): { big: string; unit: string } {
@@ -60,15 +61,7 @@ export function ExamRow(props: {
           }
         }}
       >
-        <input
-          ref={nameInput}
-          className={`text${tried && !name.trim() ? " bad" : ""}`}
-          aria-label="Exam name"
-          placeholder="Exam name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && save()}
-        />
+        <NameField value={name} onChange={setName} onEnter={save} showError={tried} inputRef={nameInput} />
         <DateField value={date} onChange={setDate} today={props.today} marks={marks} showError={tried} onEnter={save} label="Exam date" />
         <div className="edit-actions">
           <button type="button" className="btn ghost" onClick={() => setEditing(false)}>

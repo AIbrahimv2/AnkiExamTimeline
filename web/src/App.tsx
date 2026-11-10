@@ -4,6 +4,7 @@ import { call } from "./bridge";
 import { ConfirmRemove } from "./components/ConfirmRemove";
 import { DateField } from "./components/DateField";
 import { ExamRow } from "./components/ExamRow";
+import { NameField } from "./components/NameField";
 import { dayDiff, fromISO } from "./dates";
 import type { Exam, State } from "./types";
 
@@ -96,22 +97,13 @@ export function App() {
     <div className="page">
       <section className="card add">
         <h2>Add an exam</h2>
-        <input
-          ref={nameInput}
-          className={`text${tried && !name.trim() ? " bad" : ""}`}
-          aria-label="Exam name"
-          placeholder="Exam name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && add()}
-        />
+        <NameField value={name} onChange={setName} onEnter={add} showError={tried} inputRef={nameInput} />
         <div className="add-row">
           <DateField value={date} onChange={setDate} today={state.today} marks={marks} showError={tried} onEnter={add} label="Exam date" />
           <button type="button" className="btn primary add-btn" onClick={add}>
             <Plus size={15} strokeWidth={2.6} /> Add exam
           </button>
         </div>
-        {tried && !name.trim() && <div className="form-error">Give the exam a name.</div>}
       </section>
 
       {error && <div className="banner-error">{error}</div>}
