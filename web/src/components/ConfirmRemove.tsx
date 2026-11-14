@@ -28,11 +28,11 @@ export function ConfirmRemove(props: { exam: Exam; onConfirm: () => void; onCanc
 
   return (
     <div
-      className="modal-backdrop"
+      className="overlay"
       onMouseDown={(e) => e.target === e.currentTarget && props.onCancel()}
       onKeyDown={onKey}
     >
-      <div className="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+      <div className="modal confirm" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body">
         <h3 id="confirm-title">Remove {props.exam.name}?</h3>
         <p id="confirm-body">{when ? formatLong(when) : props.exam.date}</p>
         <div className="modal-actions">

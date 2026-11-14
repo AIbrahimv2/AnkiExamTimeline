@@ -368,7 +368,7 @@ key("Escape")
 assert not js(MODAL) and d.isVisible(), "Esc keeps the exam, and the window"
 mouse('[aria-label="Remove Shelf"]')
 assert wait_for(MODAL)
-mouse(".modal-backdrop", corner=True)
+mouse(".overlay", corner=True)
 assert not js(MODAL), "so does a click outside"
 mouse('[aria-label="Remove Shelf"]')
 mouse(".modal .btn:not(.danger)")
