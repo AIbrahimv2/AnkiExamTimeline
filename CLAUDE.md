@@ -19,3 +19,10 @@ the tests. Never use `<input type="date">`, `<select>` or other native-popup
 controls in the editor page: they crash Anki's web view on macOS.
 The AnkiWeb listing (title, tags, versions, description) is in
 `docs/ankiweb-listing.md`. Keep it matching what's live.
+
+**Shared kit:** `src/kit/` and `web/src/kit/` are copies of `../anki-addon-kit` (the
+theme, the controls, the Settings / What's new / About dialog and the
+notice after updates). Don't edit them here: change the kit and run its
+`sync.py`; `build.sh` warns when they're behind. `build.sh` puts
+`CHANGELOG.md` in the package, where What's new shows it to users, so
+write it in their terms.
