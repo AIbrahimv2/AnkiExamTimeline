@@ -19,6 +19,7 @@ import argparse
 import importlib.util
 import json
 import os
+import sys
 import tempfile
 from datetime import date, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -40,6 +41,19 @@ window.pycmd = function (arg, cb) {
 </script>
 <script src="/web/app.js"></script>
 </head><body><div id="root"></div></body></html>"""
+
+
+def load_kit():
+    """The shared add-on kit (src/kit/), as the editor window uses it for
+    What's new and About. Outside Anki it knows only this add-on."""
+    spec = importlib.util.spec_from_file_location(
+        "kit", os.path.join(SRC, "kit", "__init__.py"), submodule_search_locations=[os.path.join(SRC, "kit")]
+    )
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["kit"] = mod
+    spec.loader.exec_module(mod)
+    mod.register("exam-timeline")
+    return mod
 
 
 def load_bridge():
@@ -83,6 +97,7 @@ def main() -> None:
     with os.fdopen(fd, "w") as f:
         json.dump({"exams": exams}, f)
     bridge = load_bridge()(FileStore(path))
+    kit = load_kit()
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *a):
@@ -111,7 +126,9 @@ def main() -> None:
             if self.path != "/bridge":
                 return self._send(404, b"not found", "text/plain")
             raw = self.rfile.read(int(self.headers.get("Content-Length", 0))).decode()
-            self._send(200, json.dumps(bridge.handle(raw)).encode(), "application/json")
+            msg = json.loads(raw)
+            reply = kit.command(msg) if msg.get("cmd") == "kit" else bridge.handle(raw)
+            self._send(200, json.dumps(reply).encode(), "application/json")
 
     print(f"Exam Timeline dev server on http://127.0.0.1:{args.port}  (exams in {path})", flush=True)
     ThreadingHTTPServer(("127.0.0.1", args.port), Handler).serve_forever()

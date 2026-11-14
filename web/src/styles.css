@@ -74,6 +74,8 @@ html, body { min-height: 100%; }
 }
 .add { display: grid; gap: 10px; margin-bottom: 22px; }
 .add h2 { margin-bottom: 2px; }
+/* The title and the ⋯ menu (What's new, About). */
+.add-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: -4px -6px 0 0; }
 .add-row { display: flex; gap: 10px; align-items: flex-start; }
 .add-row .datefield { flex: 1; min-width: 0; }
 .banner-error {

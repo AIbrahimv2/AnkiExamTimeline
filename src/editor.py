@@ -10,6 +10,7 @@ by the page itself.
 
 from __future__ import annotations
 
+import json
 import os
 
 from aqt import mw
@@ -17,6 +18,7 @@ from aqt.qt import QDialog, QVBoxLayout
 from aqt.utils import restoreGeom, saveGeom
 from aqt.webview import AnkiWebView
 
+from . import kit
 from .bridge import Bridge
 from .exams import ConfigStore
 
@@ -61,7 +63,7 @@ class EditorDialog(QDialog):
         lay = QVBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
         self.web = AnkiWebView(self, title="exam_timeline")
-        self.web.set_bridge_command(self.bridge.handle, self)
+        self.web.set_bridge_command(self._on_bridge, self)
         lay.addWidget(self.web)
         self.web.stdHtml(
             '<div id="root"></div>',
@@ -69,6 +71,18 @@ class EditorDialog(QDialog):
             js=[asset_url("app.js")],
             context=self,
         )
+
+    def _on_bridge(self, raw: str):
+        """The shared add-on kit's commands (What's new, About, the other
+        add-ons), then the editor's own."""
+        if isinstance(raw, str) and raw.startswith("{"):
+            try:
+                msg = json.loads(raw)
+            except ValueError:
+                msg = None
+            if isinstance(msg, dict) and msg.get("cmd") == "kit":
+                return kit.command(msg)
+        return self.bridge.handle(raw)
 
     def reload_exams(self) -> None:
         """The page asks for the list again (the window was reopened)."""

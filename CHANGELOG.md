@@ -3,6 +3,24 @@
 All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased]
+
+### Added
+
+- **What's new and About**, in the editor's ⋯ menu: What's new (this list of
+  changes, with the ones since you last looked marked New) and About (links
+  to the code and to report a problem, whether AnkiWeb has an update, and
+  AIbrahimv2's other Anki add-ons, with an Install button). A dot on ⋯ says
+  there's an update you haven't read about.
+- **One notice after updates.** When any of AIbrahimv2's add-ons is updated, a
+  card at the bottom of Anki's main window says so once, with a link to
+  what's new.
+
+### Changed
+
+- The editor's buttons and its "Remove this exam?" dialog look like the ones
+  in AIbrahimv2's other add-ons.
+
 ## [1.1.0] - 2026-11-09
 
 ### Changed

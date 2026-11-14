@@ -16,6 +16,7 @@ from datetime import date
 from aqt import gui_hooks, mw
 from aqt.qt import QAction, qconnect
 
+from . import kit
 from .editor import open_editor
 from .exams import ConfigStore, upcoming
 
@@ -244,3 +245,6 @@ gui_hooks.main_window_did_init.append(_install)
 _register_first(gui_hooks.deck_browser_will_render_content, on_deck_render)
 _register_first(gui_hooks.overview_will_render_content, on_overview_render)
 gui_hooks.webview_did_receive_js_message.append(on_js_message)
+# The add-on kit shared with AIbrahimv2's other add-ons (src/kit/): What's new
+# and About in the editor's ⋯ menu, and one notice after updates.
+kit.register("exam-timeline")
