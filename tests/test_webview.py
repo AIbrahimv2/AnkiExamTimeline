@@ -6,6 +6,7 @@ edit, remove and undo. Run with Anki's own Python (tests/run.sh does).
 Also checks the page never puts up a control with a native popup (a date
 input, a select): those crash Anki's web view on macOS."""
 
+import importlib.util
 import json
 import os
 import sys
@@ -19,12 +20,14 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 S = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(os.path.dirname(S), "src")
 ANKI = "/Applications/Anki.app/Contents/Resources/app_packages"
-ANKI_WEB = os.path.join(ANKI, "_aqt/data/web")
 PORT = 5198
 FOLDER = "examtl"  # the add-on's folder name in Anki, without the hyphen
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-sys.path.insert(0, ANKI)
+# The installed app's Anki, unless this Python has its own (tests/run_on_anki.sh
+# runs the tests on another Anki version that way).
+if importlib.util.find_spec("aqt") is None:
+    sys.path.insert(0, ANKI)
 link = os.path.join(S, "fixture", "pkgs", FOLDER)
 os.makedirs(os.path.dirname(link), exist_ok=True)
 if not os.path.islink(link):
@@ -35,6 +38,9 @@ from aqt.qt import QApplication, QEvent, QKeyEvent, QMenu, QMouseEvent, QPointF,
 
 app = QApplication.instance() or QApplication(["test"])
 import aqt  # noqa: E402
+from aqt.utils import aqt_data_folder  # noqa: E402
+
+ANKI_WEB = os.path.join(aqt_data_folder(), "web")
 
 TODAY = date.today()
 iso = lambda days: (TODAY + timedelta(days=days)).isoformat()  # noqa: E731
