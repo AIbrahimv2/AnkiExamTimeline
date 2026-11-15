@@ -38,7 +38,9 @@ and **Esc** goes back a level or closes it.
 
 ### From AnkiWeb
 
-Search for "Exam Timeline" in Anki's **Tools → Add-ons → Get Add-ons**.
+In Anki, open **Tools → Add-ons → Get Add-ons** and paste the code
+`341595498`. It needs Anki 24.04 or newer. See the
+[AnkiWeb page](https://ankiweb.net/shared/info/341595498).
 
 ### Manual
 
