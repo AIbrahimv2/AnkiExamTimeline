@@ -10,7 +10,51 @@ same session.
 
 ## Tags
 
-exam countdown timeline deadline study planner
+exam countdown timeline days until exam date days remaining exam day deadline study planner study plan test date target date board exam usmle step1 step 1 step 2 comlex nbme shelf exam mcat nclex bar exam
+
+## Search
+
+Searched on 2026-11-15, before and after the tags above replaced the old
+ones, with the `ankiweb_search.py` approach from the `anki-addon-release`
+skill. "Results" is how many add-ons match now. AnkiWeb sorts results by
+ratings, so an add-on without ratings comes after every rated match; the
+words only decide whether it shows up.
+
+- Tags match whole words. "study plan" didn't find the tag "study planner",
+  while the title and description match parts of words ("mac" finds
+  "macOS"). So the tags spell out the exact words people type.
+- Neighbouring tags read as a phrase, so their order matters.
+- Left out on purpose: "timer", "schedule", "reminder" and "motivation":
+  people searching those want other things (review timers, scheduling,
+  notifications).
+
+| Search | Results | Before | After |
+| --- | --- | --- | --- |
+| exam | 817 | #809 | #664 |
+| exam countdown | 12 | #11 | #10 |
+| countdown | 64 | #45 | #60 |
+| exam date | 24 | absent | #24 |
+| exam day | 8 | absent | #3 |
+| days until | 10 | absent | #8 |
+| days left | 7 | #5 | #4 |
+| days remaining | 6 | absent | #2 |
+| target date | 9 | absent | #6 |
+| test date | 2 | absent | #2 |
+| deadline | 29 | #21 | #21 |
+| study planner | 9 | #9 | #3 |
+| study plan | 25 | absent | #22 |
+| board exam | 8 | absent | #3 |
+| usmle | 49 | absent | #36 |
+| step 1 | 73 | absent | #61 |
+| step1 | 38 | absent | #27 |
+| step 2 | 54 | not run | #53 |
+| comlex | 18 | absent | #11 |
+| nbme | 15 | absent | #15 |
+| shelf exam | 5 | absent | #4 |
+| mcat | 22 | absent | #11 |
+| nclex | 3 | absent | #3 |
+| bar exam | 2 | absent | #2 |
+| calendar | 52 | #46 | #38 |
 
 ## Support page
 
