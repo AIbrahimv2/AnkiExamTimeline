@@ -242,7 +242,7 @@ window.shotReady = new Promise((resolve) => window.addEventListener('load', () =
 
 # --- the macOS window around each, on a wallpaper ----------------------------------
 
-PAD = (52, 64, 76)  # wallpaper around the window: top, sides, bottom
+PAD = (52, 64, 76)  # wallpaper around the main window: top, sides, bottom
 TITLE_BAR = 28
 RADIUS = 16
 
@@ -291,10 +291,14 @@ def window(title: str, image: str, size: tuple, tint: str | None, wallpaper: tup
     glass is the wallpaper behind it, blurred, under that tint, with no
     title bar of its own; without, a standard dark window."""
     w, h = size
-    # The wallpaper at a screen's scale, centred: each shot is the middle of
-    # the same desktop.
+    # Every shot is the same size and the same part of the desktop: the
+    # wallpaper at a screen's scale, with the window centred across, and down
+    # in the same proportion as the main window (its shadow falls below).
     name, ww, wh = wallpaper
-    stage_w, stage_h = framed_size(size)
+    stage_w, stage_h = stage_size()
+    assert w <= MAIN_SIZE[0] and h <= MAIN_SIZE[1], "the main window is the largest"
+    left = (stage_w - w) / 2
+    top = (stage_h - h - TITLE_BAR) * PAD[0] / (PAD[0] + PAD[2])
     scale = max(SCREEN_WIDTH / ww, stage_w / ww, stage_h / wh)
     backdrop = f"#1a1a2e url('{name}') {WALLPAPER_POSITION} / {ww * scale:.0f}px {wh * scale:.0f}px no-repeat"
     if tint:
@@ -306,7 +310,7 @@ def window(title: str, image: str, size: tuple, tint: str | None, wallpaper: tup
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
 html, body {{ margin: 0; height: 100%; }}
 body {{ background: {backdrop}; }}
-.win {{ position: absolute; left: {PAD[1]}px; top: {PAD[0]}px; width: {w}px; border-radius: {RADIUS}px;
+.win {{ position: absolute; left: {left:g}px; top: {top:g}px; width: {w}px; border-radius: {RADIUS}px;
         overflow: hidden; {win}
         box-shadow: 0 0 0 .5px rgba(0,0,0,.7), 0 24px 60px rgba(0,0,0,.45), 0 6px 18px rgba(0,0,0,.25); }}
 .win::after {{ content: ""; position: absolute; inset: 0; border-radius: {RADIUS}px; pointer-events: none;
@@ -321,8 +325,9 @@ img {{ display: block; width: {w}px; height: {h}px; }}
 {title}</div><img src="{image}"></div></body></html>"""
 
 
-def framed_size(size: tuple) -> tuple:
-    return size[0] + 2 * PAD[1], size[1] + TITLE_BAR + PAD[0] + PAD[2]
+def stage_size() -> tuple:
+    """Every shot's size: the main window's, with the wallpaper around it."""
+    return MAIN_SIZE[0] + 2 * PAD[1], MAIN_SIZE[1] + TITLE_BAR + PAD[0] + PAD[2]
 
 
 # --- the editor ------------------------------------------------------------------------
@@ -444,7 +449,7 @@ def main() -> None:
         shots = []
         for name, size, out in (("window-main.html", MAIN_SIZE, "screenshot.png"),
                                 ("window-editor.html", EDITOR_SIZE, "editor.png")):
-            w, h = framed_size(size)
+            w, h = stage_size()
             shots.append({"url": f"{base}/{name}", "width": w, "height": h, "wait": 300,
                           "out": os.path.join(DOCS, out)})
         capture(work, shots)
