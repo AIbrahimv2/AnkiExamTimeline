@@ -10,6 +10,11 @@ All notable changes to this project are documented here. The format is based on
 - **What's new and About open in a window of their own**, wider and easier
   to read: each version's changes sit beside its number, and the other
   add-ons are laid out as cards.
+- **The signature at the end of About signs itself**, stroke by stroke, as
+  if written by hand when you scroll to it.
+- Add-on emoji stand on their own now, without a box around them.
+- About ends with links to AIbrahimv2's LinkedIn and Instagram, under the
+  signature.
 - With no upcoming exams, the deck screen now shows a clear "Add an exam"
   button instead of a small link. After your last exam it says which one it
   was and how long ago, so you can add the next one.
