@@ -4,6 +4,11 @@ What's live at https://ankiweb.net/shared/info/341595498. Edit it at
 https://ankiweb.net/shared/upload?id=341595498, and update this file in the
 same session.
 
+## Package on AnkiWeb
+
+Version 1.2.0, uploaded 2026-11-17. The release script (`release.py --uploaded`
+in the `anki-addon-release` skill) updates this line after each upload.
+
 ## Title
 
 📅 Exam Timeline: a countdown to your upcoming exams on the deck screen
