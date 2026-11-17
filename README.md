@@ -1,10 +1,10 @@
 # Exam Timeline
 
-An [Anki](https://apps.ankiweb.net/) add-on that shows your upcoming exams on a
-horizontal countdown timeline. Each exam appears as a card with a large
-"days left" number, sorted so the nearest exam is first.
+An [Anki](https://apps.ankiweb.net/) add-on that puts a countdown to your next
+exam on the deck screen: a large "days left" number above a timeline of all your
+upcoming exams, nearest first.
 
-<img width="1800" height="1169" alt="Screenshot 2026-10-06 at 12 18 54" src="https://github.com/user-attachments/assets/aaae8840-53d6-4c34-b3b0-f63387a095a1" />
+<img src="docs/screenshot.png" width="856" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams">
 
 ## Features
 
@@ -27,6 +27,8 @@ The timeline appears on the deck and deck-overview screens. To manage exams, ope
 **Tools → Exam Timeline** (or click the **gear** next to the countdown): type a name
 and a date, and press **Enter** or click **Add exam**. Hover over an exam to edit
 it (pencil) or remove it (**×**). Changes appear on the deck screen immediately.
+
+<img src="docs/editor.png" width="656" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns">
 
 The calendar opens when you click or tab into the date field and follows what you
 type. To go further ahead, click the month's name to pick a month, and the year to
@@ -67,6 +69,10 @@ ln -s "$(pwd)/src" ~/Library/Application\ Support/Anki2/addons21/anki-exam-timel
   (Python) and the editor in Anki's own web view (Anki's Python).
 - `./build.sh` builds the editor and writes a distributable `.ankiaddon` to
   `dist/`.
+- `python3 tools/screenshots.py` renders `docs/screenshot.png` and
+  `docs/editor.png` (used here and on AnkiWeb) from made-up exams, with
+  Chromium and Anki's own stylesheets. Rerun it after changing how either
+  looks.
 
 Never use `<input type="date">`, `<select>` or other controls with a native
 popup in the editor: in Anki's web view on macOS they crash Anki.
