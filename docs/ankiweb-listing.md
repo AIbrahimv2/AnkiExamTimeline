@@ -99,23 +99,30 @@ pass. Rerun the tests on the minimum before each release.
 
 ## Description
 
-Paste as is. AnkiWeb takes Markdown and basic HTML. It opens with a sentence
-saying what the add-on does, never with an image.
+Paste as is. AnkiWeb takes Markdown and basic HTML. It follows the layout in
+the `anki-addon-release` skill's listing conventions: what it does, the code
+line and the screenshot first, the signature last.
 
-```html
-<p>Puts a countdown to your next exam on Anki's deck screen: a large <b>days left</b> number above a timeline of all your upcoming exams, nearest first.</p>
+```markdown
+Puts a countdown to your next exam on Anki's deck screen: a large **days left** number above a timeline of all your upcoming exams, nearest first.
+
+**Code: 341595498.** Paste it in Anki under **Tools → Add-ons → Get Add-ons**. Needs Anki 24.04 or newer.
+
 <p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/screenshot.png" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams" width="100%"></p>
+
 <p><small>Shown with <a href="https://ankiweb.net/shared/info/1866406123">AnkiGlass</a>, which gives Anki's main window macOS Liquid Glass.</small></p>
-<b>Features</b>
-<ul>
-<li>A clean timeline widget on the <b>deck (home)</b> and <b>deck overview</b> screens, showing one exam at a time with a large <b>days left</b> number. The nearest exam comes first.</li>
-<li>Press the <b>← / →</b> arrow keys to step through your exams.</li>
-<li>Add, edit and remove exams in a separate editor window: <b>Tools → Exam Timeline</b>, or click the gear next to the countdown.</li>
-<li>Type a date the way you'd say it ("Nov 20", "11/20", "next friday", "in 3 weeks"), or pick it in a calendar that marks the days you already have exams on.</li>
-<li>Exams are saved between sessions, and past exams disappear on their own.</li>
-</ul>
+
+**Features**
+
+- A clean timeline widget on the **deck (home)** and **deck overview** screens, showing one exam at a time with a large **days left** number. The nearest exam comes first.
+- Press the **← / →** arrow keys to step through your exams.
+- Add, edit and remove exams in a separate editor window: **Tools → Exam Timeline**, or click the gear next to the countdown.
+- Type a date the way you'd say it ("Nov 20", "11/20", "next friday", "in 3 weeks"), or pick it in a calendar that marks the days you already have exams on.
+- Exams are saved between sessions, and past exams disappear on their own.
+
 <p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/editor.png" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns" width="100%"></p>
 
-<b>Source, bug reports and changelog</b>
-[github.com/AIbrahimv2/AnkiExamTimeline](https://github.com/AIbrahimv2/AnkiExamTimeline)
+Source, changelog and issues: [github.com/AIbrahimv2/AnkiExamTimeline](https://github.com/AIbrahimv2/AnkiExamTimeline)
+
+<p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiAddonKit/main/assets/signature.png" alt="AIbrahimv2" width="180"></p>
 ```
