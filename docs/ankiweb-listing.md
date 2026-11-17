@@ -102,7 +102,8 @@ pass. Rerun the tests on the minimum before each release.
 Paste as is. AnkiWeb takes Markdown and basic HTML.
 
 ```html
-<p><img alt="Screenshot 2026-10-06 at 12 18 54" src="https://github.com/user-attachments/assets/aaae8840-53d6-4c34-b3b0-f63387a095a1" /></p>
+<p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/screenshot.png" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams" width="100%"></p>
+<p><small>Shown with <a href="https://ankiweb.net/shared/info/1866406123">AnkiGlass</a>, which gives Anki's main window macOS Liquid Glass.</small></p>
 <b>Features</b>
 <ul>
 <li>A clean timeline widget on the <b>deck (home)</b> and <b>deck overview</b> screens, showing one exam at a time with a large <b>days left</b> number. The nearest exam comes first.</li>
@@ -111,6 +112,7 @@ Paste as is. AnkiWeb takes Markdown and basic HTML.
 <li>Type a date the way you'd say it ("Nov 20", "11/20", "next friday", "in 3 weeks"), or pick it in a calendar that marks the days you already have exams on.</li>
 <li>Exams are saved between sessions, and past exams disappear on their own.</li>
 </ul>
+<p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/editor.png" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns" width="77%"></p>
 
 <b>Source, bug reports and changelog</b>
 [github.com/AIbrahimv2/AnkiExamTimeline](https://github.com/AIbrahimv2/AnkiExamTimeline)
