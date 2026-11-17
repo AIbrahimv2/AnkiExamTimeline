@@ -26,6 +26,16 @@ def upcoming(exams: list) -> list:
     return rows
 
 
+def last_past(exams: list, today: date | None = None):
+    """The most recent exam before today, as (exam, days ago), or None."""
+    best = None
+    for e in exams:
+        d = days_left(e.get("date", ""), today)
+        if d is not None and d < 0 and (best is None or -d < best[1]):
+            best = (e, -d)
+    return best
+
+
 class ConfigStore:
     """The exams in Anki's add-on config."""
 

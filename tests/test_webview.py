@@ -112,7 +112,7 @@ mw.baseHTML = lambda: f'<base href="http://127.0.0.1:{PORT}/">'
 mw.pm = types.SimpleNamespace(minimalist_mode=lambda: False, reduce_motion=lambda: False)
 aqt.mw = mw
 
-import examtl  # noqa: E402,F401
+import examtl  # noqa: E402
 from examtl import editor  # noqa: E402
 
 editor.restoreGeom = editor.saveGeom = lambda *a, **k: None
@@ -416,6 +416,16 @@ d.resize(100, 100)
 settle()
 assert (d.width(), d.height()) == (380, 420), (d.width(), d.height())
 print("window size is capped")
+
+# --- the deck screen with no upcoming exams -------------------------------------------
+w = examtl.build_timeline_widget([])
+assert "Count down to your exams" in w and 'class="et-add"' in w, "invites the first exam, with a button"
+w = examtl.build_timeline_widget([{"name": "MSK", "date": iso(-40)}, {"name": "B&B <NBME>", "date": iso(-4)}])
+assert "B&amp;B &lt;NBME&gt; was 4 days ago." in w, "names the exam just past, escaped"
+assert "Quiz was yesterday." in examtl.build_timeline_widget([{"name": "Quiz", "date": iso(-1)}])
+w = examtl.build_timeline_widget([{"name": "MSK", "date": iso(-40)}])
+assert "No upcoming exams" in w and "MSK" not in w, "one long past isn't named"
+print("deck screen with no upcoming exams")
 
 print("\nWEBVIEW TEST PASSED")
 srv.shutdown()

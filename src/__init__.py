@@ -10,6 +10,7 @@ widget), a web page in editor.py. Data is stored in the add-on config.
 
 from __future__ import annotations
 
+import html
 import json
 from datetime import date
 
@@ -18,7 +19,7 @@ from aqt.qt import QAction, qconnect
 
 from . import kit
 from .editor import open_editor
-from .exams import ConfigStore, upcoming
+from .exams import ConfigStore, last_past, upcoming
 
 OPEN_CMD = "examtl:open"
 
@@ -63,9 +64,25 @@ TIMELINE_STYLE = """
            transition: opacity .15s, background .15s; }
 .et-gear:hover { opacity: .9; background: rgba(127,127,127,.14); }
 
-.et-empty { opacity: .55; font-size: 13px; padding: 14px 2px; }
-.et-empty a { color: var(--fg, #1a1a1a); cursor: pointer; text-decoration: underline; }
-.et-empty a:hover { opacity: .7; }
+.et-empty { text-align: center; padding: 6px 0 4px; }
+.et-ghost { display: flex; align-items: center; gap: 5px; width: 150px; margin: 0 auto 16px;
+            color: var(--fg, #1a1a1a); opacity: .28; }
+.et-ghost-dot { flex: none; box-sizing: border-box; width: 8px; height: 8px; border-radius: 50%;
+                border: 1.5px solid currentColor; }
+.et-ghost-dot.last { width: 12px; height: 12px; background: currentColor; }
+.et-ghost-line { flex: 1; border-top: 1.5px dashed currentColor; }
+.et-ghost-line.long { flex: 2; }
+.et-empty-title { font-size: 16px; font-weight: 600; }
+.et-empty-text { font-size: 13px; line-height: 1.45; opacity: .6; max-width: 330px;
+                 margin: 4px auto 0; word-break: break-word; }
+.et-wrap .et-add { display: inline-flex; align-items: center; gap: 6px; margin: 16px 0 0;
+                   padding: 7px 15px 7px 12px; border: 1px solid rgba(127,127,127,.3);
+                   border-radius: 999px; background: rgba(127,127,127,.12); box-shadow: none;
+                   color: var(--fg, #1a1a1a); font: 600 13px/1 -apple-system, system-ui, sans-serif;
+                   cursor: pointer; transition: background .15s, border-color .15s; }
+.et-wrap .et-add:hover { background: rgba(127,127,127,.22); border-color: rgba(127,127,127,.45);
+                         box-shadow: none; }
+.et-wrap .et-add:focus-visible { box-shadow: 0 0 0 2px var(--border-focus, #3b82f6); }
 </style>
 """
 
@@ -177,14 +194,47 @@ def _gear() -> str:
     )
 
 
+PLUS_SVG = (
+    "<svg viewBox='0 0 16 16' width='11' height='11' fill='none' stroke='currentColor' "
+    "stroke-width='2' stroke-linecap='round' aria-hidden='true'><path d='M8 2.5v11M2.5 8h11'/></svg>"
+)
+
+# A faint sketch of the timeline it turns into once there's an exam.
+GHOST = (
+    '<div class="et-ghost" aria-hidden="true"><span class="et-ghost-dot"></span>'
+    '<span class="et-ghost-line"></span><span class="et-ghost-dot"></span>'
+    '<span class="et-ghost-line long"></span><span class="et-ghost-dot last"></span></div>'
+)
+
+
+def _empty_copy(exams: list) -> tuple:
+    """The empty widget's title and line: an invitation the first time, and
+    after the last exam has passed, which one it was if it was recent."""
+    past = last_past(exams)
+    if past is None:
+        return "Count down to your exams", "Add an exam and the days left show up here."
+    exam, ago = past
+    name = (exam.get("name") or "").strip()
+    if name and ago <= 30:
+        when = "yesterday" if ago == 1 else f"{ago} days ago"
+        return "No upcoming exams", f"{html.escape(name)} was {when}.<br>Add the next one to start a new countdown."
+    return "No upcoming exams", "Add the next one to start a new countdown."
+
+
+def _empty_widget(exams: list) -> str:
+    title, text = _empty_copy(exams)
+    return (
+        f'<div class="et-wrap" id="et-widget"><div class="et-empty">{GHOST}'
+        f'<div class="et-empty-title">{title}</div><div class="et-empty-text">{text}</div>'
+        f"<button class=\"et-add\" onclick=\"pycmd('{OPEN_CMD}')\">{PLUS_SVG}Add an exam</button>"
+        f"</div></div>{TIMELINE_STYLE}{PLACE_SCRIPT}"
+    )
+
+
 def build_timeline_widget(exams: list) -> str:
     data = _widget_data(exams)
     if not data:
-        return (
-            '<div class="et-wrap" id="et-widget"><div class="et-empty">No upcoming exams — '
-            f"<a onclick=\"pycmd('{OPEN_CMD}')\">add one</a>.</div></div>"
-            f"{TIMELINE_STYLE}{PLACE_SCRIPT}"
-        )
+        return _empty_widget(exams)
     body = (
         '<div class="et-wrap" id="et-widget">'
         '<div class="et-focus">'

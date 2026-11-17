@@ -10,6 +10,9 @@ All notable changes to this project are documented here. The format is based on
 - **What's new and About open in a window of their own**, wider and easier
   to read: each version's changes sit beside its number, and the other
   add-ons are laid out as cards.
+- With no upcoming exams, the deck screen now shows a clear "Add an exam"
+  button instead of a small link. After your last exam it says which one it
+  was and how long ago, so you can add the next one.
 
 ## [1.2.0] - 2026-11-17
 
