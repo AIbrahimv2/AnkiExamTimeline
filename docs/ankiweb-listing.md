@@ -99,9 +99,11 @@ pass. Rerun the tests on the minimum before each release.
 
 ## Description
 
-Paste as is. AnkiWeb takes Markdown and basic HTML.
+Paste as is. AnkiWeb takes Markdown and basic HTML. It opens with a sentence
+saying what the add-on does, never with an image.
 
 ```html
+<p>Puts a countdown to your next exam on Anki's deck screen: a large <b>days left</b> number above a timeline of all your upcoming exams, nearest first.</p>
 <p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/screenshot.png" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams" width="100%"></p>
 <p><small>Shown with <a href="https://ankiweb.net/shared/info/1866406123">AnkiGlass</a>, which gives Anki's main window macOS Liquid Glass.</small></p>
 <b>Features</b>
