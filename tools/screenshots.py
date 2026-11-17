@@ -1,24 +1,34 @@
 #!/usr/bin/env python3
 """Make the screenshots for the README and the AnkiWeb listing.
 
-    python3 tools/screenshots.py
+    python3 tools/screenshots.py [--plain] [--capture-wallpaper | --wallpaper PATH]
 
-Writes, at 2x and in dark mode, each framed as a macOS window:
+Writes, at 2x and in dark mode, each a macOS window on the same macOS
+wallpaper: Tahoe's dark one, which macOS 26 and later ship as a file.
+--wallpaper uses another image, or a video's first frame. Wallpapers macOS
+draws live (Sequoia's, say) have no file: --capture-wallpaper takes the one
+the desktop shows now, on its own at the screen's full resolution, into
+tools/wallpaper.png (Apple's artwork, so git leaves it out), and uses it.
 
 - docs/screenshot.png: Anki's main window with the timeline on the deck
-  screen. It's Anki's own page markup and stylesheets (from the installed
-  Anki.app) around the add-on's real widget.
+  screen, in AnkiGlass's Liquid Glass (--plain for stock Anki). It's Anki's
+  own page markup and stylesheets (from the installed Anki.app) around the
+  add-on's real widget, with AnkiGlass's own CSS (from ../anki-glass) and
+  its window glass drawn as the wallpaper, blurred, under its tint.
 - docs/editor.png: the editor, adding an exam with the date typed in words,
   above the exams and their countdowns. It's the built page (src/web/), run
   by tools/devserver.py. (The calendar is left closed: open, it covers the
   list.)
 
 The exams and decks are made up, and dated from today. Needs Node and
-Chromium (/Applications/Chromium.app, or set CHROMIUM).
+Chromium (/Applications/Chromium.app, or set CHROMIUM), and AnkiGlass's
+repo next to this one (or set ANKI_GLASS to its src/).
 """
 
 from __future__ import annotations
 
+import argparse
+import ast
 import importlib.util
 import json
 import os
@@ -39,6 +49,16 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, "src")
 DOCS = os.path.join(ROOT, "docs")
 ANKI_WEB = os.environ.get("ANKI_WEB", "/Applications/Anki.app/Contents/Resources/app_packages/_aqt/data/web")
+WALLPAPER = "/System/Library/ExtensionKit/Extensions/NeptuneOneWallpaper.appex/Contents/Resources/TahoeDark.heic"
+CAPTURED = os.path.join(ROOT, "tools", "wallpaper.png")  # made by --capture-wallpaper; not in git
+SCREEN_WIDTH = 1512  # the wallpaper's width in the shots: a MacBook Pro 14"'s screen, in points
+# Which part of it shows (CSS background-position). Of six wallpapers in nine
+# crops each, measured for WCAG contrast of every word against what's behind
+# it, Tahoe Dark's top left came out the best-looking of the legible ones:
+# 33 of 36 pass, the rest near misses. Anki's coloured counts suffer most
+# over a bright patch of wallpaper, so check them after changing this.
+WALLPAPER_POSITION = "0% 0%"
+ANKI_GLASS = os.environ.get("ANKI_GLASS", os.path.join(os.path.dirname(ROOT), "anki-glass", "src"))
 
 # --- made-up exams and decks ---------------------------------------------------------
 
@@ -48,10 +68,10 @@ NEW_EXAM = ("Pharm Exam 1", "in 3 weeks")  # what the editor shot is typing
 # (depth, name, children shown: None (no children), "+" (collapsed) or "-", new, learn, due)
 DECKS = [
     (0, "AnKing Step Deck", "+", 50, 8, 312),
-    (0, "Lectures", "-", 30, 4, 78),
+    (0, "Lectures", "-", 40, 6, 78),
     (1, "Cardio", None, 30, 4, 57),
-    (1, "Renal", None, 0, 0, 21),
-    (0, "Pathoma", None, 0, 0, 0),
+    (1, "Renal", None, 10, 2, 21),
+    (0, "Pathoma", None, 0, 0, 14),  # under AnkiGlass, zeros are faint: keep them few
 ]
 CURRENT_DECK = "AnKing Step Deck"
 STUDIED = "Studied 186 cards in 31 minutes today (10.0s/card)."
@@ -91,6 +111,34 @@ def load_addon():
     return mod
 
 
+# --- AnkiGlass ---------------------------------------------------------------------------
+
+
+def load_glass() -> dict:
+    """AnkiGlass's CSS for each of the main window's pages, and its dark tint,
+    read from its source (it can't be imported outside Anki): what its
+    webview_will_set_content hook adds to each page in dark mode."""
+    path = os.path.join(ANKI_GLASS, "__init__.py")
+    if not os.path.isfile(path):
+        raise SystemExit(f"AnkiGlass isn't at {ANKI_GLASS}: set ANKI_GLASS, or pass --plain")
+    found = {}
+    for node in ast.parse(open(path).read()).body:
+        if isinstance(node, ast.Assign) and len(node.targets) == 1 and isinstance(node.targets[0], ast.Name):
+            try:
+                found[node.targets[0].id] = ast.literal_eval(node.value)
+            except ValueError:
+                pass
+    tint = found["_DEFAULTS"]["tint_dark"]
+    root = f":root{{--lg-tint:{tint}}}\n"  # its tint_css()
+    common = found["GLASS_COMMON_CSS"]
+    return {
+        "tint": tint,
+        "toolbar": root + common + found["GLASS_TOP_CSS"],
+        "deck": root + found["GLASS_CONTENT_CSS"] + found["GLASS_DECK_CSS"],
+        "bottom": root + common + found["GLASS_BOTTOM_CSS"],
+    }
+
+
 # --- Anki's main window: toolbar, deck screen, bottom bar ----------------------------
 
 # What AnkiWebView.stdHtml puts on every page on a Mac, and the body classes
@@ -113,16 +161,18 @@ button {
 BODY_CLASS = "isMac nightMode night_mode fancy"
 
 
-def anki_page(body: str, *css: str) -> str:
+def anki_page(body: str, *css: str, extra: str = "") -> str:
+    """A page as stdHtml makes it; `extra` is what add-ons add to its head."""
     links = "".join(f'<link rel="stylesheet" href="/_anki/css/{c}">' for c in ("webview.css", *css))
+    extra = f"<style>{extra}</style>" if extra else ""
     return (
         '<!doctype html><html class="night-mode"><head><meta charset="utf-8">'
-        f"<style>{STANDARD_CSS}</style>{links}</head>"
+        f"<style>{STANDARD_CSS}</style>{links}{extra}</head>"
         f'<body class="{BODY_CLASS}">{body}</body></html>'
     )
 
 
-def toolbar() -> str:
+def toolbar(glass: dict | None) -> str:
     links = [("decks", "Decks", "D"), ("add", "Add", "A"), ("browse", "Browse", "B"), ("stats", "Stats", "T"),
              ("sync", "Sync", "Y")]
     items = "".join(
@@ -132,10 +182,11 @@ def toolbar() -> str:
         for i, label, k in links)
     return anki_page(
         '<div class="header"><div class="left-tray"></div>'
-        f'<div class="toolbar">{items}</div><div class="right-tray"></div></div>', "toolbar.css")
+        f'<div class="toolbar">{items}</div><div class="right-tray"></div></div>', "toolbar.css",
+        extra=glass["toolbar"] if glass else "")
 
 
-def deck_screen(addon) -> str:
+def deck_screen(addon, glass: dict | None) -> str:
     rows = [
         "<tr><th colspan=5 align=start>Deck</th><th class=count>New</th><th class=count>Learn</th>"
         "<th class=count>Due</th><th class=optscol></th></tr>",
@@ -156,19 +207,22 @@ def deck_screen(addon) -> str:
             f"<td align=center class=opts><a><img src='/_anki/imgs/gears.svg' class=gears></a></td></tr>")
     stats = f'<div id="studiedToday"><span>{STUDIED}</span></div>' + addon.build_timeline_widget(exams())
     body = f"<center>\n<table cellspacing=0 cellpadding=3>{''.join(rows)}</table>\n<br>\n{stats}</center>"
-    return anki_page(body, "deckbrowser.css")
+    return anki_page(body, "deckbrowser.css", extra=glass["deck"] if glass else "")
 
 
-def bottom_bar() -> str:
+def bottom_bar(glass: dict | None) -> str:
     buttons = "".join(f"<button onclick='pycmd(\"{c}\");'>{label}</button>"
                       for c, label in (("shared", "Get Shared"), ("add", "Create Deck"), ("import", "Import File")))
     return anki_page(f"<center id=outer><table width=100% id=header><tr><td align=center>\n{buttons}</td></tr>"
-                     "</table></center>", "toolbar.css", "toolbar-bottom.css")
+                     "</table></center>", "toolbar.css", "toolbar-bottom.css", extra=glass["bottom"] if glass else "")
 
 
 # Anki's three web views, one above the other, each sized to fit as Anki does.
+# Under AnkiGlass they're see-through, so the page is left clear for the glass;
+# its colour-scheme matches theirs, or Chromium paints the frames opaque.
 MAIN_WINDOW = """<!doctype html><html><head><style>
-html, body { margin: 0; height: 100%; background: #2c2c2c; }
+:root { color-scheme: dark; }
+html, body { margin: 0; height: 100%; background: BACKGROUND; }
 body { display: flex; flex-direction: column; }
 iframe { display: block; border: 0; width: 100%; flex: none; }
 #main { flex: 1; }
@@ -186,24 +240,79 @@ window.shotReady = new Promise((resolve) => window.addEventListener('load', () =
 }));
 </script></body></html>"""
 
-# --- the macOS window around each ---------------------------------------------------
+# --- the macOS window around each, on a wallpaper ----------------------------------
 
-PAD = (36, 48, 64)  # room for the window's shadow: top, sides, bottom
+PAD = (52, 64, 76)  # wallpaper around the window: top, sides, bottom
 TITLE_BAR = 28
+RADIUS = 16
 
 
-def window(title: str, image: str, size: tuple) -> str:
+def capture_wallpaper(out: str) -> None:
+    """The desktop's wallpaper as it shows now, without the windows and icons
+    on it: macOS draws it in a window of its own, which screencapture can
+    take alone. Needs this app to be allowed to record the screen."""
+    find = ('ObjC.import("CoreGraphics");'
+            "const all = ObjC.deepUnwrap(ObjC.castRefToObject("
+            "$.CGWindowListCopyWindowInfo($.kCGWindowListOptionAll, 0)));"
+            'const w = all.find((w) => w.kCGWindowName === "Wallpaper" && w.kCGWindowLayer < -1000'
+            " && w.kCGWindowBounds.X === 0 && w.kCGWindowBounds.Y === 0);"  # the main display's
+            'w ? String(w.kCGWindowNumber) : ""')
+    wid = subprocess.run(["osascript", "-l", "JavaScript", "-e", find],
+                         capture_output=True, text=True).stdout.strip()
+    if not wid:
+        raise SystemExit("couldn't find the desktop's wallpaper: allow this app to record the screen "
+                         "(System Settings > Privacy & Security > Screen & System Audio Recording)")
+    subprocess.run(["screencapture", "-x", "-o", "-l", wid, out], check=True)
+    print("captured the wallpaper to", os.path.relpath(out, ROOT))
+
+
+def prepare_wallpaper(path: str, work: str) -> tuple:
+    """The wallpaper as a PNG in `work`, and its size. macOS keeps its stills
+    as HEIC, which Chromium can't show, and some only as videos."""
+    if not os.path.isfile(path):
+        if path == WALLPAPER:
+            raise SystemExit("Tahoe's wallpaper isn't here (it needs macOS 26 or later): "
+                             "pass --wallpaper or --capture-wallpaper")
+        raise SystemExit(f"no wallpaper at {path}")
+    out = os.path.join(work, "wallpaper.png")
+    if path.lower().endswith((".mov", ".mp4", ".m4v")):
+        # Quick Look's thumbnail of a video is its first frame.
+        subprocess.run(["qlmanage", "-t", "-s", "3840", "-o", work, path], check=True, capture_output=True)
+        os.replace(os.path.join(work, os.path.basename(path) + ".png"), out)
+    else:
+        subprocess.run(["sips", "-s", "format", "png", path, "--out", out], check=True, capture_output=True)
+    sizes = subprocess.run(["sips", "-g", "pixelWidth", "-g", "pixelHeight", out],
+                           check=True, capture_output=True, text=True).stdout.split()
+    return "wallpaper.png", int(sizes[-3]), int(sizes[-1])
+
+
+def window(title: str, image: str, size: tuple, tint: str | None, wallpaper: tuple) -> str:
+    """A macOS window holding `image`. With a tint, it's AnkiGlass's: the
+    glass is the wallpaper behind it, blurred, under that tint, with no
+    title bar of its own; without, a standard dark window."""
     w, h = size
+    # The wallpaper at a screen's scale, centred: each shot is the middle of
+    # the same desktop.
+    name, ww, wh = wallpaper
+    stage_w, stage_h = framed_size(size)
+    scale = max(SCREEN_WIDTH / ww, stage_w / ww, stage_h / wh)
+    backdrop = f"#1a1a2e url('{name}') {WALLPAPER_POSITION} / {ww * scale:.0f}px {wh * scale:.0f}px no-repeat"
+    if tint:
+        win = f"background: {tint}; backdrop-filter: blur(28px) saturate(150%);"
+        rim, bar = "rgba(255,255,255,.2)", "background: transparent;"
+    else:
+        win = "background: #2c2c2c;"
+        rim, bar = "rgba(255,255,255,.11)", "background: #353535; box-shadow: inset 0 -1px 0 rgba(0,0,0,.55);"
     return f"""<!doctype html><html><head><meta charset="utf-8"><style>
-html, body {{ margin: 0; background: transparent; }}
-.win {{ position: absolute; left: {PAD[1]}px; top: {PAD[0]}px; width: {w}px; border-radius: 12px;
-        overflow: hidden; background: #2c2c2c;
-        box-shadow: 0 0 0 .5px rgba(0,0,0,.9), 0 22px 54px rgba(0,0,0,.42), 0 6px 16px rgba(0,0,0,.22); }}
-.win::after {{ content: ""; position: absolute; inset: 0; border-radius: 12px; pointer-events: none;
-               box-shadow: inset 0 0 0 1px rgba(255,255,255,.11); }}
+html, body {{ margin: 0; height: 100%; }}
+body {{ background: {backdrop}; }}
+.win {{ position: absolute; left: {PAD[1]}px; top: {PAD[0]}px; width: {w}px; border-radius: {RADIUS}px;
+        overflow: hidden; {win}
+        box-shadow: 0 0 0 .5px rgba(0,0,0,.7), 0 24px 60px rgba(0,0,0,.45), 0 6px 18px rgba(0,0,0,.25); }}
+.win::after {{ content: ""; position: absolute; inset: 0; border-radius: {RADIUS}px; pointer-events: none;
+               box-shadow: inset 0 0 0 1px {rim}; }}
 .bar {{ position: relative; height: {TITLE_BAR}px; display: flex; align-items: center; justify-content: center;
-        background: #353535; box-shadow: inset 0 -1px 0 rgba(0,0,0,.55);
-        font: 600 13px -apple-system, system-ui, sans-serif; color: rgba(255,255,255,.84); }}
+        {bar} font: 600 13px -apple-system, system-ui, sans-serif; color: rgba(255,255,255,.85); }}
 .lights {{ position: absolute; left: 13px; top: 8px; display: flex; gap: 8px; }}
 .lights i {{ width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.25); }}
 img {{ display: block; width: {w}px; height: {h}px; }}
@@ -285,14 +394,26 @@ def capture(work: str, shots: list[dict]) -> None:
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--plain", action="store_true", help="stock Anki, without AnkiGlass")
+    which = ap.add_mutually_exclusive_group()
+    which.add_argument("--capture-wallpaper", action="store_true",
+                       help="use the desktop's wallpaper as it shows now (saved to tools/wallpaper.png)")
+    which.add_argument("--wallpaper", default=WALLPAPER, help="an image, or a video to take the first frame of")
+    args = ap.parse_args()
+    if args.capture_wallpaper:
+        capture_wallpaper(CAPTURED)
+        args.wallpaper = CAPTURED
     if not os.path.isdir(ANKI_WEB):
         raise SystemExit(f"Anki's web files aren't at {ANKI_WEB}: set ANKI_WEB")
     addon = load_addon()
+    glass = None if args.plain else load_glass()
     work = tempfile.mkdtemp(prefix="exam-timeline-shots-")
     dev = None
     try:
-        for name, page in (("toolbar.html", toolbar()), ("deck.html", deck_screen(addon)),
-                           ("bottom.html", bottom_bar()), ("main.html", MAIN_WINDOW)):
+        main_window = MAIN_WINDOW.replace("BACKGROUND", "transparent" if glass else "#2c2c2c")
+        for name, page in (("toolbar.html", toolbar(glass)), ("deck.html", deck_screen(addon, glass)),
+                           ("bottom.html", bottom_bar(glass)), ("main.html", main_window)):
             with open(os.path.join(work, name), "w") as f:
                 f.write(page)
         srv = serve(work)
@@ -308,20 +429,23 @@ def main() -> None:
 
         capture(work, [
             {"url": f"{base}/main.html", "width": MAIN_SIZE[0], "height": MAIN_SIZE[1], "setup": "window.shotReady",
-             "out": os.path.join(work, "main.png")},
+             "transparent": bool(glass), "out": os.path.join(work, "main.png")},
             {"url": f"http://127.0.0.1:{port}/?theme=dark", "width": EDITOR_SIZE[0], "height": EDITOR_SIZE[1],
              "setup": EDITOR_SETUP, "wait": 900, "out": os.path.join(work, "editor-raw.png")},
         ])
-        for name, title, image, size in (("window-main.html", "User 1 - Anki", "main.png", MAIN_SIZE),
-                                         ("window-editor.html", "Exam Timeline", "editor-raw.png", EDITOR_SIZE)):
+        wallpaper = prepare_wallpaper(args.wallpaper, work)
+        # AnkiGlass puts glass under the main window only: the editor stays solid.
+        for name, title, image, size, tint in (
+                ("window-main.html", "User 1 - Anki", "main.png", MAIN_SIZE, glass and glass["tint"]),
+                ("window-editor.html", "Exam Timeline", "editor-raw.png", EDITOR_SIZE, None)):
             with open(os.path.join(work, name), "w") as f:
-                f.write(window(title, image, size))
+                f.write(window(title, image, size, tint, wallpaper))
         os.makedirs(DOCS, exist_ok=True)
         shots = []
         for name, size, out in (("window-main.html", MAIN_SIZE, "screenshot.png"),
                                 ("window-editor.html", EDITOR_SIZE, "editor.png")):
             w, h = framed_size(size)
-            shots.append({"url": f"{base}/{name}", "width": w, "height": h, "transparent": True, "wait": 300,
+            shots.append({"url": f"{base}/{name}", "width": w, "height": h, "wait": 300,
                           "out": os.path.join(DOCS, out)})
         capture(work, shots)
         for s in shots:

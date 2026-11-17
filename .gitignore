@@ -5,3 +5,5 @@ __pycache__/
 meta.json
 .DS_Store
 tests/fixture/
+# Apple's wallpaper, captured by tools/screenshots.py --capture-wallpaper
+tools/wallpaper.png
