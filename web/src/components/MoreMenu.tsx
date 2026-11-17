@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import { type Anchor, anchorBelow, Menu } from "../kit/controls";
 import type { KitTab } from "../kit/types";
 
-/** The ⋯ menu: What's new and About, in the dialog every one of the
+/** The ⋯ menu: What's new and About, in the window every one of the
  *  add-ons shares. A dot says there's an update you haven't read about. */
 export function MoreMenu(props: { unseen: boolean; onPick: (tab: KitTab) => void }) {
   const btn = useRef<HTMLButtonElement>(null);

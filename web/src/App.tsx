@@ -7,8 +7,7 @@ import { ExamRow } from "./components/ExamRow";
 import { MoreMenu } from "./components/MoreMenu";
 import { NameField } from "./components/NameField";
 import { dayDiff, fromISO } from "./dates";
-import { AddonDialog, selfOf, useKitAbout } from "./kit/AddonDialog";
-import type { KitTab } from "./kit/types";
+import { openKitWindow, selfOf, useKitAbout } from "./kit/AddonDialog";
 import { kitCall } from "./kitCall";
 import type { Exam, State } from "./types";
 
@@ -18,7 +17,6 @@ export function App() {
   // The exam just added, saved or put back: lit up in the list for a moment.
   const [flash, setFlash] = useState<Exam["id"] | null>(null);
   const [showPast, setShowPast] = useState(false);
-  const [aboutTab, setAboutTab] = useState<KitTab | null>(null);
   const [kitAbout] = useKitAbout(kitCall);
   // The exam waiting on "Remove it?", and what had focus before asking.
   const [confirming, setConfirming] = useState<{ exam: Exam; from: Element | null } | null>(null);
@@ -116,7 +114,7 @@ export function App() {
       <section className="card add">
         <div className="add-head">
           <h2>Add an exam</h2>
-          <MoreMenu unseen={!!selfOf(kitAbout)?.unseen} onPick={setAboutTab} />
+          <MoreMenu unseen={!!selfOf(kitAbout)?.unseen} onPick={(tab) => openKitWindow(kitCall, tab)} />
         </div>
         <NameField value={name} onChange={setName} onEnter={add} showError={tried} inputRef={nameInput} />
         <div className="add-row">
@@ -149,8 +147,6 @@ export function App() {
           {showPast && past.map(row)}
         </section>
       )}
-
-      {aboutTab && <AddonDialog call={kitCall} tab={aboutTab} onTab={setAboutTab} onClose={() => setAboutTab(null)} />}
 
       {confirming && (
         <ConfirmRemove
