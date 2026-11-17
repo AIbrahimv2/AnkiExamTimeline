@@ -4,7 +4,7 @@ An [Anki](https://apps.ankiweb.net/) add-on that puts a countdown to your next
 exam on the deck screen: a large "days left" number above a timeline of all your
 upcoming exams, nearest first.
 
-<img src="docs/screenshot.png" width="856" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams">
+<img src="docs/screenshot.png" width="100%" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams">
 
 <sub>Shown with [AnkiGlass](https://github.com/AIbrahimv2/AnkiGlass), which gives Anki's main window macOS Liquid Glass.</sub>
 
@@ -30,7 +30,7 @@ The timeline appears on the deck and deck-overview screens. To manage exams, ope
 and a date, and press **Enter** or click **Add exam**. Hover over an exam to edit
 it (pencil) or remove it (**×**). Changes appear on the deck screen immediately.
 
-<img src="docs/editor.png" width="656" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns">
+<img src="docs/editor.png" width="100%" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns">
 
 The calendar opens when you click or tab into the date field and follows what you
 type. To go further ahead, click the month's name to pick a month, and the year to
