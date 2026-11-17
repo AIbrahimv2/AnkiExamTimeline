@@ -6,6 +6,8 @@ upcoming exams, nearest first.
 
 <img src="docs/screenshot.png" width="856" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams">
 
+<sub>Shown with [AnkiGlass](https://github.com/AIbrahimv2/AnkiGlass), which gives Anki's main window macOS Liquid Glass.</sub>
+
 ## Features
 
 - **Timeline widget** on the deck (home) and deck-overview screens showing
@@ -71,8 +73,10 @@ ln -s "$(pwd)/src" ~/Library/Application\ Support/Anki2/addons21/anki-exam-timel
   `dist/`.
 - `python3 tools/screenshots.py` renders `docs/screenshot.png` and
   `docs/editor.png` (used here and on AnkiWeb) from made-up exams, with
-  Chromium and Anki's own stylesheets. Rerun it after changing how either
-  looks.
+  Chromium, Anki's own stylesheets and AnkiGlass's (from `../anki-glass`),
+  on macOS Tahoe's dark wallpaper. Rerun it after changing how either looks;
+  `--plain` leaves out AnkiGlass, and `--wallpaper` or `--capture-wallpaper`
+  (the desktop's own) picks another.
 
 Never use `<input type="date">`, `<select>` or other controls with a native
 popup in the editor: in Anki's web view on macOS they crash Anki.
