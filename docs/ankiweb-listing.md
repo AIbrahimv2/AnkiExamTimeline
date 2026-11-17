@@ -112,7 +112,7 @@ Paste as is. AnkiWeb takes Markdown and basic HTML.
 <li>Type a date the way you'd say it ("Nov 20", "11/20", "next friday", "in 3 weeks"), or pick it in a calendar that marks the days you already have exams on.</li>
 <li>Exams are saved between sessions, and past exams disappear on their own.</li>
 </ul>
-<p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/editor.png" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns" width="77%"></p>
+<p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/editor.png" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns" width="100%"></p>
 
 <b>Source, bug reports and changelog</b>
 [github.com/AIbrahimv2/AnkiExamTimeline](https://github.com/AIbrahimv2/AnkiExamTimeline)
