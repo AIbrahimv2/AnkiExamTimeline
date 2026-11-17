@@ -14,6 +14,12 @@ All notable changes to this project are documented here. The format is based on
   button instead of a small link. After your last exam it says which one it
   was and how long ago, so you can add the next one.
 
+### Fixed
+
+- Exams a few days apart, or on the same day, no longer pile up on the
+  timeline: their dots sit side by side, so each one can be clicked. With
+  lots of exams, the dots get smaller to fit.
+
 ## [1.2.0] - 2026-11-17
 
 ### Added

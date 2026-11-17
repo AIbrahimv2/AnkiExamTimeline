@@ -126,9 +126,9 @@ def pump(n=5):
         app.processEvents()
 
 
-def js(expr, timeout=8.0):
+def js(expr, timeout=8.0, web=None):
     done = []
-    d.web.evalWithCallback(expr, lambda r: done.append(r))
+    (web or d.web).evalWithCallback(expr, lambda r: done.append(r))
     t = time.time()
     while not done and time.time() - t < timeout:
         pump()
@@ -136,11 +136,11 @@ def js(expr, timeout=8.0):
     return done[0] if done else "<timeout>"
 
 
-def wait_for(expr, timeout=15.0):
+def wait_for(expr, timeout=15.0, web=None):
     t = time.time()
     while time.time() - t < timeout:
         pump()
-        v = js(expr, 2)
+        v = js(expr, 2, web)
         if v not in (None, False, 0, "", "<timeout>"):
             return v
         time.sleep(0.1)
@@ -426,6 +426,50 @@ assert "Quiz was yesterday." in examtl.build_timeline_widget([{"name": "Quiz", "
 w = examtl.build_timeline_widget([{"name": "MSK", "date": iso(-40)}])
 assert "No upcoming exams" in w and "MSK" not in w, "one long past isn't named"
 print("deck screen with no upcoming exams")
+
+# --- the deck screen's timeline: its dots never overlap ---------------------------------
+from aqt.webview import AnkiWebView  # noqa: E402
+
+deck = AnkiWebView()
+deck.show()
+# Each dot's centre and radius, the focused dot's halo included.
+DOTS = """JSON.stringify([...document.querySelectorAll('.et-tick')].map((t) => {
+  const r = t.getBoundingClientRect(), s = r.width / t.offsetWidth;
+  return [r.x + r.width / 2, r.width / 2 + (t.classList.contains('active') ? 4 * s : 0)];
+}))"""
+
+
+def dots(width=None):
+    if width:
+        deck.resize(width, 500)
+    time.sleep(0.3)  # the focused dot grows
+    settle()
+    return json.loads(js(DOTS, web=deck))
+
+
+def timeline(exams, width, focus=0):
+    deck.resize(width, 500)
+    deck.stdHtml(examtl.build_timeline_widget(exams))
+    assert wait_for(f"document.querySelectorAll('.et-tick').length === {len(exams)}", web=deck), "it shows"
+    js(f"document.querySelectorAll('.et-tick')[{focus}].click()", web=deck)
+    return dots()
+
+
+def space(ds):
+    """The space between each dot and the next, left to right."""
+    return [round(b[0] - a[0] - a[1] - b[1], 2) for a, b in zip(ds, ds[1:])]
+
+
+close = [{"name": n, "date": iso(days)} for n, days in (("Renal", 30), ("RL 2", 63), ("Shelf", 64), ("Final", 66))]
+ds = timeline(close, 700, focus=1)
+assert min(space(ds)) >= 3, space(ds)
+assert ds[1][0] - ds[0][0] > 100, "dates far apart stay far apart"
+same_day = [{"name": f"Quiz {i}", "date": iso(5)} for i in range(3)] + [{"name": "Final", "date": iso(40)}]
+assert min(space(timeline(same_day, 700, focus=1))) >= 3, "exams on one day sit side by side"
+crowd = [{"name": f"Exam {i}", "date": iso(i // 2)} for i in range(40)]
+assert min(space(timeline(crowd, 700, focus=11))) > 0, "40 exams: the dots shrink to fit"
+assert min(space(dots(360))) > 0, "and again when the window narrows"
+print("timeline dots never overlap")
 
 print("\nWEBVIEW TEST PASSED")
 srv.shutdown()

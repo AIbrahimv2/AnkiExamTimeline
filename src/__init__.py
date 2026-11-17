@@ -47,8 +47,8 @@ TIMELINE_STYLE = """
 .et-track { position: relative; height: 30px; margin: 14px 14px 0; }
 .et-rail { position: absolute; left: 0; right: 0; top: 13px; height: 2px;
            background: var(--border, #e0e0e0); }
-.et-tick { position: absolute; top: 13px; transform: translate(-50%, -50%); width: 10px;
-           height: 10px; border-radius: 50%; background: var(--border, #c4c4c4);
+.et-tick { position: absolute; top: 13px; transform: translate(-50%, -50%) scale(var(--et-scale, 1));
+           width: 10px; height: 10px; border-radius: 50%; background: var(--border, #c4c4c4);
            border: 2px solid var(--canvas, #fff); cursor: pointer;
            transition: width .15s, height .15s, background .15s, box-shadow .15s; }
 .et-tick:hover { background: #9aa0a6; }
@@ -103,17 +103,56 @@ WIDGET_SCRIPT = """
   var ticks = [];
   Array.prototype.forEach.call(track.querySelectorAll('.et-tick'), function (t) { t.remove(); });
 
-  function posPct(d) { return EXAMS.length === 1 ? 50 : (6 + (d / maxDays) * 88); }
+  // Dots sit where their dates fall, but never closer than MIN_GAP px apart
+  // (centre to centre), so the focused dot and its halo clear its neighbours.
+  var MIN_GAP = 24;
+
+  // Moves sorted positions apart to at least `gap`, as little as it can:
+  // dots that would crowd form a group, evenly spaced and centred on where
+  // they'd be, and groups that then touch merge. All stay within lo..hi.
+  function spread(xs, gap, lo, hi) {
+    var groups = [];
+    function place(g) { g.start = Math.min(Math.max(g.sum / g.n, lo), hi - (g.n - 1) * gap); }
+    xs.forEach(function (x, i) {
+      var g = { first: i, n: 1, sum: x };
+      place(g);
+      while (groups.length) {
+        var prev = groups[groups.length - 1];
+        if (prev.start + prev.n * gap <= g.start + 0.01) { break; }
+        groups.pop();
+        g = { first: prev.first, n: prev.n + g.n, sum: prev.sum + g.sum - g.n * prev.n * gap };
+        place(g);
+      }
+      groups.push(g);
+    });
+    var out = [];
+    groups.forEach(function (g) {
+      for (var k = 0; k < g.n; k++) { out.push(g.start + k * gap); }
+    });
+    return out;
+  }
+
+  function layout() {
+    if (EXAMS.length === 1) { ticks[0].style.left = '50%'; return; }
+    var w = track.clientWidth || 452;  // its usual width, if it isn't laid out yet
+    var lo = w * 0.06, hi = w * 0.94;
+    var gap = Math.min(MIN_GAP, (hi - lo) / (EXAMS.length - 1));
+    // Too many to fit that far apart: the dots shrink with the gap instead.
+    track.style.setProperty('--et-scale', String(gap / MIN_GAP));
+    var xs = spread(EXAMS.map(function (e) { return lo + (e.days / maxDays) * (hi - lo); }), gap, lo, hi);
+    ticks.forEach(function (t, i) { t.style.left = (xs[i] / w * 100) + '%'; });
+  }
 
   EXAMS.forEach(function (e, i) {
     var t = document.createElement('div');
     t.className = 'et-tick';
-    t.style.left = posPct(e.days) + '%';
     t.title = e.name + ' \\u2014 ' + e.pretty;
     t.addEventListener('click', function () { focus = i; render(); });
     track.appendChild(t);
     ticks.push(t);
   });
+  layout();
+  window.addEventListener('resize', layout);
 
   function render() {
     var e = EXAMS[focus];
