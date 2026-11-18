@@ -3,10 +3,11 @@
 
     python3 tools/screenshots.py [--plain] [--capture-wallpaper | --wallpaper PATH]
 
-Writes docs/screenshot.png, Anki's main window with the timeline on the deck
-screen (in AnkiGlass; --plain for stock Anki), and docs/editor.png, the
-editor adding an exam with its date typed in words, above the exams and
-their countdowns (the calendar left closed: open, it covers the list).
+Writes docs/screenshot.png, one image of two windows side by side: Anki's
+main window with the timeline on the deck screen (in AnkiGlass; --plain for
+stock Anki), and the editor adding an exam with its date typed in words,
+above the exams and their countdowns (the calendar left closed: open, it
+covers the list). They speak for themselves, so they aren't labelled.
 
 They're made with the add-ons' shared screenshot tools, in the kit's
 checkout next to this one (../anki-addon-kit/screenshots/shots.py, or set
@@ -61,7 +62,7 @@ def load_addon():
         main_window_did_init=[], deck_browser_will_render_content=[], overview_will_render_content=[],
         webview_did_receive_js_message=[])
     qt = types.ModuleType("aqt.qt")
-    qt.QAction, qt.qconnect = object, lambda *a: None
+    qt.QAction, qt.QKeySequence, qt.qconnect = object, object, lambda *a: None
     kit = types.ModuleType("examtl_shots.kit")
     kit.register = lambda *a: None
     editor = types.ModuleType("examtl_shots.editor")
@@ -126,13 +127,12 @@ def main() -> None:
         finally:
             dev.terminate()
         # AnkiGlass puts glass under the main window only: the editor stays solid.
-        written = s.frames([
+        out = s.side_by_side([
             {"image": "deck.png", "size": shots.MAIN_SIZE, "title": "User 1 - Anki",
-             "tint": glass and glass["tint"], "out": "screenshot.png"},
-            {"image": "editor.png", "size": EDITOR_SIZE, "title": "Exam Timeline", "out": "editor.png"},
-        ], shots.wallpaper_for(args, s), DOCS)
-    for out in written:
-        print("wrote", os.path.relpath(out, ROOT))
+             "tint": glass and glass["tint"]},
+            {"image": "editor.png", "size": EDITOR_SIZE, "title": "Exam Timeline"},
+        ], None, shots.wallpaper_for(args, s), os.path.join(DOCS, "screenshot.png"))
+    print("wrote", os.path.relpath(out, ROOT))
 
 
 if __name__ == "__main__":

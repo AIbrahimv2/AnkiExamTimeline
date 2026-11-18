@@ -4,7 +4,7 @@ An [Anki](https://apps.ankiweb.net/) add-on that puts a countdown to your next
 exam on the deck screen: a large "days left" number above a timeline of all your
 upcoming exams, nearest first.
 
-<img src="docs/screenshot.png" width="100%" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams">
+<img src="docs/screenshot.png" width="100%" alt="Anki's deck screen with Exam Timeline under the deck list, 13 days left until Cardio Exam 2 above a timeline of four upcoming exams, beside the editor adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;">
 
 <sub>Shown with [AnkiGlass](https://github.com/AIbrahimv2/AnkiGlass), which gives Anki's main window macOS Liquid Glass.</sub>
 
@@ -30,8 +30,6 @@ The timeline appears on the deck and deck-overview screens. To manage exams, ope
 or click the **gear** next to the countdown: type a name
 and a date, and press **Enter** or click **Add exam**. Hover over an exam to edit
 it (pencil) or remove it (**×**). Changes appear on the deck screen immediately.
-
-<img src="docs/editor.png" width="100%" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns">
 
 The calendar opens when you click or tab into the date field and follows what you
 type. To go further ahead, click the month's name to pick a month, and the year to
@@ -72,10 +70,10 @@ ln -s "$(pwd)/src" ~/Library/Application\ Support/Anki2/addons21/anki-exam-timel
   (Python) and the editor in Anki's own web view (Anki's Python).
 - `./build.sh` builds the editor and writes a distributable `.ankiaddon` to
   `dist/`.
-- `python3 tools/screenshots.py` renders `docs/screenshot.png` and
-  `docs/editor.png` (used here and on AnkiWeb) from made-up exams, with the
-  add-ons' shared screenshot tools in the kit (`../anki-addon-kit/screenshots`):
-  Anki's own pages in AnkiGlass, on macOS Tahoe's dark wallpaper. Rerun it
+- `python3 tools/screenshots.py` renders `docs/screenshot.png`, the deck
+  screen and the editor side by side (used here and on AnkiWeb), from
+  made-up exams, with the add-ons' shared screenshot tools in the kit
+  (`../anki-addon-kit/screenshots`): Anki's own pages in AnkiGlass, on macOS Tahoe's dark wallpaper. Rerun it
   after changing how either looks; `--plain` leaves out AnkiGlass.
 
 Never use `<input type="date">`, `<select>` or other controls with a native

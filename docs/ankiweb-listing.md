@@ -108,7 +108,7 @@ Puts a countdown to your next exam on Anki's deck screen: a large **days left** 
 
 **Code: 341595498.** Paste it in Anki under **Tools → Add-ons → Get Add-ons**. Needs Anki 24.04 or newer.
 
-<p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/screenshot.png" alt="Anki's deck screen with Exam Timeline under the deck list: 13 days left until Cardio Exam 2, above a timeline of four upcoming exams" width="100%"></p>
+<p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/screenshot.png" alt="Anki's deck screen with Exam Timeline under the deck list, 13 days left until Cardio Exam 2 above a timeline of four upcoming exams, beside the editor adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;" width="100%"></p>
 
 <p><small>Shown with <a href="https://ankiweb.net/shared/info/1866406123">AnkiGlass</a>, which gives Anki's main window macOS Liquid Glass.</small></p>
 
@@ -119,8 +119,6 @@ Puts a countdown to your next exam on Anki's deck screen: a large **days left** 
 - Add, edit and remove exams in a separate editor window: **Tools → Exam Timeline**, or click the gear next to the countdown.
 - Type a date the way you'd say it ("Nov 20", "11/20", "next friday", "in 3 weeks"), or pick it in a calendar that marks the days you already have exams on.
 - Exams are saved between sessions, and past exams disappear on their own.
-
-<p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/editor.png" alt="The Exam Timeline editor: adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;, which it reads as in 21 days, above the upcoming exams and their countdowns" width="100%"></p>
 
 Source, changelog and issues: [github.com/AIbrahimv2/AnkiExamTimeline](https://github.com/AIbrahimv2/AnkiExamTimeline)
 
