@@ -26,7 +26,8 @@ upcoming exams, nearest first.
 ## Usage
 
 The timeline appears on the deck and deck-overview screens. To manage exams, open
-**Tools → Exam Timeline** (or click the **gear** next to the countdown): type a name
+**Tools → Exam Timeline**, press **⌘⇧E** (**Ctrl+Shift+E** on Windows and Linux),
+or click the **gear** next to the countdown: type a name
 and a date, and press **Enter** or click **Add exam**. Hover over an exam to edit
 it (pencil) or remove it (**×**). Changes appear on the deck screen immediately.
 
@@ -72,11 +73,10 @@ ln -s "$(pwd)/src" ~/Library/Application\ Support/Anki2/addons21/anki-exam-timel
 - `./build.sh` builds the editor and writes a distributable `.ankiaddon` to
   `dist/`.
 - `python3 tools/screenshots.py` renders `docs/screenshot.png` and
-  `docs/editor.png` (used here and on AnkiWeb) from made-up exams, with
-  Chromium, Anki's own stylesheets and AnkiGlass's (from `../anki-glass`),
-  on macOS Tahoe's dark wallpaper. Rerun it after changing how either looks;
-  `--plain` leaves out AnkiGlass, and `--wallpaper` or `--capture-wallpaper`
-  (the desktop's own) picks another.
+  `docs/editor.png` (used here and on AnkiWeb) from made-up exams, with the
+  add-ons' shared screenshot tools in the kit (`../anki-addon-kit/screenshots`):
+  Anki's own pages in AnkiGlass, on macOS Tahoe's dark wallpaper. Rerun it
+  after changing how either looks; `--plain` leaves out AnkiGlass.
 
 Never use `<input type="date">`, `<select>` or other controls with a native
 popup in the editor: in Anki's web view on macOS they crash Anki.
