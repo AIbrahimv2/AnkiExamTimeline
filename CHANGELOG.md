@@ -14,10 +14,14 @@ All notable changes to this project are documented here. The format is based on
   if written by hand when you scroll to it.
 - Add-on emoji stand on their own now, without a box around them.
 - About ends with links to AIbrahimv2's LinkedIn and Instagram, under the
-  signature.
+  signature, and the signature opens AIbrahimv2's website.
 - With no upcoming exams, the deck screen now shows a clear "Add an exam"
   button instead of a small link. After your last exam it says which one it
   was and how long ago, so you can add the next one.
+- **On a Mac, ⌘, opens the settings of the add-on you're in.** With
+  Stepwise's, Skim's or AnkiGlass's window in front, it opens that add-on's
+  settings instead of Anki's Preferences. Everywhere else, Exam Timeline's
+  window included, it still opens Anki's.
 
 ### Fixed
 
