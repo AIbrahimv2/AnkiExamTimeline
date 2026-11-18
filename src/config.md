@@ -1,8 +1,8 @@
 # Exam Timeline
 
 The timeline appears on the **deck** and **deck overview** screens. To add, edit or remove
-exams, open the editor window from **Tools → Exam Timeline** (or the **gear** button on
-the widget).
+exams, open the editor window from **Tools → Exam Timeline** (shortcut **⌘⇧E** on a Mac,
+**Ctrl+Shift+E** elsewhere) or the **gear** button on the widget.
 
 You normally don't need to edit this config by hand — use the editor instead.
 Each exam is stored as:

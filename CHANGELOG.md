@@ -7,6 +7,8 @@ All notable changes to this project are documented here. The format is based on
 
 ### Added
 
+- **⌘⇧E opens Exam Timeline** (Ctrl+Shift+E on Windows and Linux), from
+  anywhere in Anki's main window.
 - **Liquid Glass with AnkiGlass.** On a Mac with AnkiGlass installed, the
   Exam Timeline window and its What's new and About window get the same
   glass as Anki's main window. **Glass on add-on windows** in AnkiGlass's
