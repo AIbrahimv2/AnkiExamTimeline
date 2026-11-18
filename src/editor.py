@@ -65,6 +65,7 @@ class EditorDialog(QDialog):
         self.web = AnkiWebView(self, title="exam_timeline")
         self.web.set_bridge_command(self._on_bridge, self)
         lay.addWidget(self.web)
+        kit.glass(self)  # AnkiGlass's glass behind the window, if it's there
         self.web.stdHtml(
             '<div id="root"></div>',
             css=[asset_url("app.css")],

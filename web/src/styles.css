@@ -290,3 +290,8 @@ html, body { min-height: 100%; }
   .page { padding: 12px 12px 72px; }
   .add-row { flex-direction: column; align-items: stretch; }
 }
+
+/* --- with AnkiGlass's glass behind the window (kit/glass.css) ----------------- */
+
+/* The calendar floats over the list, all but opaque like the kit's menus. */
+:root.kit-glass .cal { background: var(--float); }
