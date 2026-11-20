@@ -110,7 +110,7 @@ Puts a countdown to your next exam on Anki's deck screen: a large **days left** 
 
 <p><img src="https://raw.githubusercontent.com/AIbrahimv2/AnkiExamTimeline/main/docs/screenshot.png" alt="Anki's deck screen with Exam Timeline under the deck list, 13 days left until Cardio Exam 2 above a timeline of four upcoming exams, beside the editor adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;" width="100%"></p>
 
-<p><small>Shown with <a href="https://ankiweb.net/shared/info/1866406123">AnkiGlass</a>, which gives Anki's main window macOS Liquid Glass.</small></p>
+<p><small>Shown with <a href="https://ankiweb.net/shared/info/1866406123">AnkiGlass</a>, which gives Anki's windows, Exam Timeline's included, macOS Liquid Glass.</small></p>
 
 **Features**
 

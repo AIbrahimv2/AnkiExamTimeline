@@ -6,7 +6,7 @@ upcoming exams, nearest first.
 
 <img src="docs/screenshot.png" width="100%" alt="Anki's deck screen with Exam Timeline under the deck list, 13 days left until Cardio Exam 2 above a timeline of four upcoming exams, beside the editor adding Pharm Exam 1 with its date typed as &quot;in 3 weeks&quot;">
 
-<sub>Shown with [AnkiGlass](https://github.com/AIbrahimv2/AnkiGlass), which gives Anki's main window macOS Liquid Glass.</sub>
+<sub>Shown with [AnkiGlass](https://github.com/AIbrahimv2/AnkiGlass), which gives Anki's windows, Exam Timeline's included, macOS Liquid Glass.</sub>
 
 ## Features
 

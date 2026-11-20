@@ -3,11 +3,12 @@
 
     python3 tools/screenshots.py [--plain] [--capture-wallpaper | --wallpaper PATH]
 
-Writes docs/screenshot.png, one image of two windows side by side: Anki's
-main window with the timeline on the deck screen (in AnkiGlass; --plain for
-stock Anki), and the editor adding an exam with its date typed in words,
-above the exams and their countdowns (the calendar left closed: open, it
-covers the list). They speak for themselves, so they aren't labelled.
+Writes docs/screenshot.png, one image of two windows side by side, centred
+on each other: Anki's main window with the timeline on the deck screen, and
+the editor adding an exam with its date typed in words, above the exams and
+their countdowns (the calendar left closed: open, it covers the list). Both
+are on AnkiGlass's glass, as AnkiGlass gives them (--plain for stock Anki).
+They speak for themselves, so they aren't labelled.
 
 They're made with the add-ons' shared screenshot tools, in the kit's
 checkout next to this one (../anki-addon-kit/screenshots/shots.py, or set
@@ -122,15 +123,16 @@ def main() -> None:
                 {"url": deck, "width": shots.MAIN_SIZE[0], "height": shots.MAIN_SIZE[1],
                  "setup": "window.shotReady", "transparent": bool(glass), "out": "deck.png"},
                 {"url": f"http://127.0.0.1:{port}/?theme=dark", "width": EDITOR_SIZE[0], "height": EDITOR_SIZE[1],
-                 "setup": EDITOR_SETUP, "wait": 900, "out": "editor.png"},
+                 "setup": EDITOR_SETUP, "wait": 900, "out": "editor.png",
+                 **({"preload": glass["window"], "transparent": True} if glass else {})},
             ])
         finally:
             dev.terminate()
-        # AnkiGlass puts glass under the main window only: the editor stays solid.
+        # AnkiGlass gives the editor its glass too, as it does the main window.
         out = s.side_by_side([
             {"image": "deck.png", "size": shots.MAIN_SIZE, "title": "User 1 - Anki",
              "tint": glass and glass["tint"]},
-            {"image": "editor.png", "size": EDITOR_SIZE, "title": "Exam Timeline"},
+            {"image": "editor.png", "size": EDITOR_SIZE, "title": "Exam Timeline", "tint": glass and glass["tint"]},
         ], None, shots.wallpaper_for(args, s), os.path.join(DOCS, "screenshot.png"))
     print("wrote", os.path.relpath(out, ROOT))
 
