@@ -26,8 +26,7 @@ upcoming exams, nearest first.
 ## Usage
 
 The timeline appears on the deck and deck-overview screens. To manage exams, open
-**Tools → Exam Timeline**, press **⌘⇧E** (**Ctrl+Shift+E** on Windows and Linux),
-or click the **gear** next to the countdown: type a name
+**Tools → Exam Timeline**, or click the **gear** next to the countdown: type a name
 and a date, and press **Enter** or click **Add exam**. Hover over an exam to edit
 it (pencil) or remove it (**×**). Changes appear on the deck screen immediately.
 

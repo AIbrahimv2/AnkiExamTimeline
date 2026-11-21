@@ -9,6 +9,12 @@ All notable changes to this project are documented here. The format is based on
 
 - About lists Skim with an Install button, now that it's on AnkiWeb.
 
+### Removed
+
+- ⌘⇧E (Ctrl+Shift+E on Windows and Linux) no longer opens Exam Timeline,
+  so it's free for Anki's editor when Skim takes `e`. Open it from
+  **Tools → Exam Timeline**, or the gear next to the countdown.
+
 ## [1.3.0] - 2026-11-17
 
 ### Added

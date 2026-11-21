@@ -4,8 +4,8 @@
 
 A read-only timeline widget is shown on the deck browser (home) screen with a
 large "days left" countdown per exam. Exams are added and removed from a
-separate editor window (Tools -> Exam Timeline or Ctrl/Cmd+Shift+E, or the
-gear button on the widget), a web page in editor.py. Data is stored in the add-on config.
+separate editor window (Tools -> Exam Timeline, or the gear button on the
+widget), a web page in editor.py. Data is stored in the add-on config.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ import json
 from datetime import date
 
 from aqt import gui_hooks, mw
-from aqt.qt import QAction, QKeySequence, qconnect
+from aqt.qt import QAction, qconnect
 
 from . import kit
 from .editor import open_editor
@@ -308,10 +308,8 @@ def on_js_message(handled, message: str, context):
 
 
 def _install() -> None:
+    # No shortcut: Skim gives Anki's editor ⌘⇧E (Ctrl+Shift+E elsewhere).
     action = QAction("Exam Timeline", mw)
-    # Qt reads "Ctrl" as ⌘ on a Mac, so this is ⌘⇧E there and Ctrl+Shift+E
-    # elsewhere. Anki's main window doesn't use it.
-    action.setShortcut(QKeySequence("Ctrl+Shift+E"))
     qconnect(action.triggered, open_editor)
     mw.form.menuTools.addAction(action)
 
