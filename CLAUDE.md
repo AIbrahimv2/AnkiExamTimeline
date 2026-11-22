@@ -7,7 +7,7 @@ To release it, publish it, or edit its AnkiWeb listing, follow the
 changelog, building and checking the package, the GitHub release, AnkiWeb, the
 listing and AnkiWeb search.
 
-- **On the user's Mac** it loads by itself, from
+- **On the user's Linux machine and Mac** it loads by itself, from
   `~/.claude/skills/anki-addon-release`.
 - **Anywhere else**, such as a cloud session, read it first:
   https://github.com/AIbrahimv2/AnkiStepwise/tree/main/.claude/skills/anki-addon-release
