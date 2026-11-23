@@ -116,7 +116,7 @@ Puts a countdown to your next exam on Anki's deck screen: a large **days left** 
 
 - A clean timeline widget on the **deck (home)** and **deck overview** screens, showing one exam at a time with a large **days left** number. The nearest exam comes first.
 - Press the **← / →** arrow keys to step through your exams.
-- Add, edit and remove exams in a separate editor window: **Tools → Exam Timeline** (**⌘⇧E**, or Ctrl+Shift+E on Windows and Linux), or click the gear next to the countdown.
+- Add, edit and remove exams in a separate editor window: **Tools → Exam Timeline**, or click the gear next to the countdown.
 - Type a date the way you'd say it ("Nov 20", "11/20", "next friday", "in 3 weeks"), or pick it in a calendar that marks the days you already have exams on.
 - Exams are saved between sessions, and past exams disappear on their own.
 
