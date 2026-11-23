@@ -6,7 +6,7 @@ same session.
 
 ## Package on AnkiWeb
 
-Version 1.3.0, uploaded 2026-11-17. The release script (`release.py --uploaded`
+Version 1.4.0, uploaded 2026-11-23. The release script (`release.py --uploaded`
 in the `anki-addon-release` skill) updates this line after each upload.
 
 ## Title
